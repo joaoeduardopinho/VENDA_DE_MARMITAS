@@ -74,18 +74,6 @@ Por ser uma aplicação **100% Client-Side**, não é necessário instalar nenhu
    ```
 2. Abra o arquivo `index.html` em qualquer navegador moderno (Chrome, Edge, Firefox, Safari).
 3. Comece a conversar e pedir suas marmitas!
-
----
-
-## 📦 Como Subir para o seu GitHub
-
-Como o `git` não estava instalado localmente no seu terminal, siga os passos abaixo para criar o repositório no GitHub:
-
-1. Acesse [github.com/new](https://github.com/new) e crie um repositório chamado `marmita-bot` (ou o nome que preferir).
-2. Se você tem o **GitHub Desktop**, basta abrir a pasta do projeto e publicá-lo.
-3. Ou, instale o [Git para Windows](https://git-scm.com/download/win) e execute no terminal dentro desta pasta:
-   ```bash
-   git init
    git add .
    git commit -m "feat: Chatbot de vendas de marmitas client-side com guardrails"
    git branch -M main
