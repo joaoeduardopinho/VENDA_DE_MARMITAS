@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarmitaBot - Pedido de Marmitas Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar com Cardápio do Dia & Informações -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo-icon">🍱</div>
+        <div>
+          <h2>Marmitaria Sabor Real</h2>
+          <span class="status-badge"><span class="status-dot"></span> Atendimento Online</span>
+        </div>
+      </div>
+
+      <div class="day-selector-card">
+        <label for="daySelect"><i class="fa-regular fa-calendar-days"></i> Dia do Cardápio:</label>
+        <select id="daySelect" class="form-select">
+          <option value="hoje">📅 Cardápio de Hoje</option>
+          <option value="segunda">Segunda-feira</option>
+          <option value="terca">Terça-feira</option>
+          <option value="quarta">Quarta-feira</option>
+          <option value="quinta">Quinta-feira</option>
+          <option value="sexta">Sexta-feira</option>
+          <option value="sabado">Sábado</option>
+          <option value="domingo">Domingo</option>
+        </select>
+      </div>
+
+      <div class="menu-container">
+        <div class="menu-header">
+          <h3>Pratos Disponíveis</h3>
+          <span class="badge" id="menuDayLabel">Hoje</span>
+        </div>
+        <div class="menu-list" id="menuList">
+          <!-- Gerado via JavaScript -->
+        </div>
+      </div>
+
+      <div class="quick-info">
+        <div class="info-item">
+          <i class="fa-solid fa-motorcycle"></i>
+          <div>
+            <strong>Taxa de Entrega</strong>
+            <p>R$ 6,00 fixa para toda a região</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <i class="fa-solid fa-clock"></i>
+          <div>
+            <strong>Tempo Médio</strong>
+            <p>30 a 45 minutos</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <i class="fa-solid fa-shield-halved"></i>
+          <div>
+            <strong>Guardrails Ativos</strong>
+            <p>Proteção anti-injeção e dados seguros</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Principal do Chatbot -->
+    <main class="chat-main">
+      <header class="chat-header">
+        <div class="chat-header-info">
+          <div class="bot-avatar">
+            <i class="fa-solid fa-robot"></i>
+            <span class="online-indicator"></span>
+          </div>
+          <div>
+            <h1>Dona Benta - Assistente Virtual</h1>
+            <p class="subtitle">Especialista em pedidos rápidos, temperos e pontos de carne</p>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="btn-icon" id="btnToggleSidebar" title="Alternar Cardápio">
+            <i class="fa-solid fa-utensils"></i>
+          </button>
+          <button class="btn-icon" id="btnClearChat" title="Reiniciar Pedido">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Mensagens do Chat -->
+      <div class="chat-messages" id="chatMessages">
+        <!-- Renderizado dinamicamente -->
+      </div>
+
+      <!-- Atalhos Rápidos (Quick Actions) -->
+      <div class="quick-actions-bar" id="quickActionsBar">
+        <button class="quick-pill" data-action="ver_cardapio">📋 Ver Cardápio</button>
+        <button class="quick-pill" data-action="fechar_pedido">🛒 Resumo / Fechar</button>
+        <button class="quick-pill" data-action="ajuda">❓ Como Funciona</button>
+        <button class="quick-pill" data-action="limpar">🔄 Novo Pedido</button>
+      </div>
+
+      <!-- Barra de Input do Chat -->
+      <footer class="chat-input-area">
+        <form id="chatForm" class="chat-form">
+          <input 
+            type="text" 
+            id="userInput" 
+            placeholder="Ex: Quero 2 bife de vaca bem passado sem cebola..." 
+            autocomplete="off"
+            maxlength="250"
+          />
+          <button type="submit" id="sendBtn" class="btn-send">
+            <span>Enviar</span>
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+        <div class="security-footer-note">
+          <i class="fa-solid fa-shield-cat"></i> Filtros de segurança e sanitização ativos (100% Client-Side)
+        </div>
+      </footer>
+    </main>
+
+    <!-- Resumo do Carrinho Lateral (Gaveta Móvel ou Painel Desktop) -->
+    <section class="cart-drawer" id="cartDrawer">
+      <div class="cart-header">
+        <h3><i class="fa-solid fa-basket-shopping"></i> Seu Pedido</h3>
+        <span class="cart-count-badge" id="cartCount">0</span>
+      </div>
+      <div class="cart-body" id="cartBody">
+        <div class="cart-empty" id="cartEmpty">
+          <i class="fa-solid fa-utensils"></i>
+          <p>Nenhuma marmita adicionada ainda.</p>
+          <small>Peça digitando no chat ou clicando nos pratos!</small>
+        </div>
+        <div class="cart-items-list" id="cartItemsList"></div>
+      </div>
+      <div class="cart-footer" id="cartFooter">
+        <div class="cart-summary-line">
+          <span>Subtotal:</span>
+          <strong id="cartSubtotal">R$ 0,00</strong>
+        </div>
+        <div class="cart-summary-line">
+          <span>Taxa de Entrega:</span>
+          <strong id="cartDeliveryFee">R$ 6,00</strong>
+        </div>
+        <div class="cart-summary-line total-line">
+          <span>Total Geral:</span>
+          <strong id="cartTotal">R$ 6,00</strong>
+        </div>
+        <button class="btn-checkout" id="btnCheckout" disabled>
+          <i class="fa-brands fa-whatsapp"></i> Finalizar Pedido
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
