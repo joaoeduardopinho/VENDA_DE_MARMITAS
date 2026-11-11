@@ -71,34 +71,57 @@ class MarmitaBotEngine {
   }
 
   // ==========================================
-  // CAMADA DE SEGURANÇA & GUARDRAILS
+  // CAMADA DE SEGURANÇA, TOKEN DEFENSE & GUARDRAILS
   // ==========================================
   validateSecurityGuardrails(input) {
     if (!input || typeof input !== 'string') {
       return { safe: false, reason: 'Entrada vazia ou inválida.' };
     }
 
-    // 1. Sanitização básica de comprimento
-    if (input.trim().length > 300) {
+    const trimmed = input.trim();
+
+    // 1. Defesa contra estouro de tokens / Flood / DoS
+    if (trimmed.length > 200) {
       return {
         safe: false,
-        reason: 'Mensagem muito longa. Para sua segurança, digite mensagens com no máximo 300 caracteres.'
+        reason: '⚠️ Mensagem muito longa. Para economia de tokens e segurança, limite sua mensagem a no máximo 200 caracteres.'
       };
     }
 
-    const cleanInput = input.toLowerCase();
+    const cleanInput = trimmed.toLowerCase();
 
-    // 2. Padrões de Jailbreak e Prompt Injection Comuns
+    // 2. Defesa contra Exfiltração de Tokens & Chaves de API
+    const tokenTheftPatterns = [
+      /(api[_-]?key|token|bearer|secret|auth|credencial|password|senha|session)/i,
+      /ghp_[a-zA-Z0-9]{20,}/,
+      /github_pat_[a-zA-Z0-9_]{20,}/,
+      /sk-[a-zA-Z0-9]{20,}/,
+      /ai[a-zA-Z0-9_-]{25,}/
+    ];
+
+    for (const pattern of tokenTheftPatterns) {
+      if (pattern.test(cleanInput)) {
+        return {
+          safe: false,
+          isAttack: true,
+          reason: '🛡️ BLOQUEIO DE SEGURANÇA: Menção ou tentativa de requisição de chaves/tokens detectada. Nenhuma credencial ou token pode ser acessada ou processada por esta aplicação.'
+        };
+      }
+    }
+
+    // 3. Jailbreak, Roleplay Evasivo, Modo Desenvolvedor e Prompt Injection
     const injectionPatterns = [
       /ignore (all )?(previous|prior) (instructions|directions|prompts)/i,
       /you are now in (dan|developer|god) mode/i,
-      /act as an unfiltered/i,
+      /act as an? (unfiltered|hacker|programmer|ai|assistant|expert|terminal|bash)/i,
       /reveal (your )?(system prompt|instructions|initial prompt)/i,
       /mostre (seu|o) (prompt de sistema|prompt inicial|instruções secretas)/i,
       /esqueça (todas as )?(suas )?(instruções|regras|ordens)/i,
-      /finja que você (é|não tem regras|é um hacker)/i,
+      /finja que você (é|não tem regras|é um hacker|é um bot livre)/i,
       /desconsidere as restrições/i,
       /bypass safety/i,
+      /modo (desenvolvedor|dan|livre|sem regras)/i,
+      /jailbreak/i,
       /sudo /i,
       /<script[\s\S]*?>[\s\S]*?<\/script>/i,
       /javascript:/i,
@@ -111,7 +134,32 @@ class MarmitaBotEngine {
         return {
           safe: false,
           isAttack: true,
-          reason: '🚨 Tentativa de desvio de diretrizes ou injeção de instruções detectada pelo sistema de Guardrails. Sou a Dona Benta e estou estritamente autorizada apenas a atender pedidos de marmitas.'
+          reason: '🚨 TENTATIVA DE JAILBREAK/INJEÇÃO BLOQUEADA: O sistema detectou tentativa de evasão de diretrizes. Este chatbot possui escopo rígido e imutável para vendas de marmitas.'
+        };
+      }
+    }
+
+    // 4. Domínio Fechado (Strict Domain Restriction)
+    // Impede o uso de tokens para geração de redações, código, conversas aleatórias, etc.
+    const forbiddenDomains = [
+      /escreva (um|uma) (poema|código|redação|script|história|artigo)/i,
+      /qual é a capital /i,
+      /resolva (a|o) cálculo/i,
+      /quem (foi|é) (o|a) presidente/i,
+      /me conte uma piada/i,
+      /traduza para o inglês/i,
+      /como hackear/i,
+      /crie um código/i,
+      /fale sobre política/i,
+      /fale sobre futebol/i
+    ];
+
+    for (const pattern of forbiddenDomains) {
+      if (pattern.test(cleanInput)) {
+        return {
+          safe: false,
+          isAttack: false,
+          reason: '🚫 ESCOPO EXCLUSIVO: Não estou autorizada a gastar tokens com tarefas gerais (redações, código, curiosidades). Meu único e exclusivo propósito é atender pedidos de marmitas da Marmitaria Sabor Real!'
         };
       }
     }
