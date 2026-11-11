@@ -1,8 +1,17 @@
 # 🍱 MarmitaBot - Chatbot de Vendas de Marmitas
 
+> 🌐 **Acesse o site online:** [https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/](https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/)
+
 Chatbot conversacional interativo desenvolvido em **JavaScript Vanilla (100% Client-Side)** para atendimento, personalização de marmitas, cálculo dinâmico de taxa de entrega e fechamento de pedidos com suporte a checkout via WhatsApp.
 
-Desenvolvido sob padrões de **Engenharia de Software / Sistemas de Informação**, com arquitetura modular, sanitização de entrada e **Guardrails defensivos multicamadas contra Prompt Injection e Jailbreak**.
+Desenvolvido sob padrões de **Engenharia de Software / Sistemas de Informação**, com arquitetura modular, sanitização de entrada e **Guardrails defensivos multicamadas contra Prompt Injection, Jailbreak e Exfiltração de Tokens**.
+
+---
+
+## 🌐 Demonstração Online
+
+A aplicação está hospedada e disponível via GitHub Pages:
+👉 **[Clique aqui para abrir o MarmitaBot](https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/)**
 
 ---
 
