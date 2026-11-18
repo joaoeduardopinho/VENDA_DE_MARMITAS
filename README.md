@@ -59,17 +59,34 @@ A aplicação está hospedada e disponível via GitHub Pages:
 
 ---
 
-## 🛡️ Camada de Guardrails (Segurança)
+## 🛡️ Camada de Guardrails & Segurança
 
-O sistema implementa 4 camadas defensivas:
-1. **Sanitização XSS**: Converte entidades HTML para impedir execução de scripts maliciosos.
+O sistema implementa múltiplas camadas defensivas:
+1. **Limite Rígido de Caracteres (300 caracteres)**:
+   - Bloqueio via HTML `maxlength="300"` e validação preventiva no motor JavaScript com indicador visual dinâmico.
+   - Previne estouro de buffer, ataques de flood, exaustão de contexto e DoS.
 2. **Detector de Jailbreak & Prompt Injection**:
    - Detecta termos de evasão como `jailbreak`, `override`, `system prompt`, `sudo`, `pretend you are`, `mode developer`, etc.
-   - Dispara alerta de segurança interno e responde com mensagem padronizada de conformidade.
-3. **Validador de Tamanho e Repetição**:
-   - Previne estouro de contexto e spam de caracteres repetidos.
-4. **Isolamento de Contexto**:
-   - Respostas geradas por regras e templates de negócio controlados, garantindo que o assistente não alucine descontos indevidos nem mude preços tabelados.
+   - Bloqueia payloads de injeção XSS como `<script>`, `onerror`, `onload`, `eval` e acessos maliciosos a cookies.
+3. **Defesa contra Exfiltração de Tokens e Credenciais**:
+   - Bloqueia e alerta caso o usuário tente extrair ou injetar chaves de API, credenciais ou tokens sensíveis.
+4. **Isolamento de Domínio**:
+   - O bot rejeita solicitações fora do escopo de marmitas (ex: redações, código, perguntas aleatórias).
+
+---
+
+## 🧠 Processamento de Linguagem Natural (NLP)
+
+O MarmitaBot conta com um pipeline de NLP implementado em JavaScript client-side puro:
+- **Normalização e Remoção de Acentos (NFD)**: Facilita correspondência independente de pontuação ou acentuação gráfica.
+- **Tokenização e Stemming**: Reduz palavras às suas raízes para flexões de plural e gênero.
+- **Similaridade com Distância de Levenshtein**: Tolera pequenos erros ortográficos do cliente ao digitar pratos ou comandos.
+- **Classificação de Intenções (Intent Recognition)**: Reconhece intenções como saudações, consulta de cardápio, checkout, pedidos de ajuda ou cancelamento.
+- **Reconhecimento de Entidades (NER - Named Entity Recognition)**:
+  - Quantidades (numerais ou por extenso como *"duas"*, *"três"*).
+  - Ponto da carne (*"ao ponto"*, *"bem passado"*, *"mal passado"*).
+  - Preferências e restrições de ingredientes (*"sem cebola"*, *"pouco sal"*, *"molho à parte"*).
+  - Formas de pagamento (*"pix"*, *"cartão"*, *"dinheiro"*).
 
 ---
 

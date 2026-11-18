@@ -110,20 +110,23 @@
       <!-- Barra de Input do Chat -->
       <footer class="chat-input-area">
         <form id="chatForm" class="chat-form">
-          <input 
-            type="text" 
-            id="userInput" 
-            placeholder="Ex: Quero 2 bife de vaca bem passado sem cebola..." 
-            autocomplete="off"
-            maxlength="250"
-          />
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="userInput" 
+              placeholder="Ex: Quero 2 bife de vaca bem passado sem cebola..." 
+              autocomplete="off"
+              maxlength="300"
+            />
+            <span class="char-counter" id="charCounter">0/300</span>
+          </div>
           <button type="submit" id="sendBtn" class="btn-send">
             <span>Enviar</span>
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
         <div class="security-footer-note">
-          <i class="fa-solid fa-shield-cat"></i> Filtros de segurança e sanitização ativos (100% Client-Side)
+          <i class="fa-solid fa-shield-cat"></i> Filtros de segurança, limite de 300 caracteres e NLP ativo (100% Client-Side)
         </div>
       </footer>
     </main>

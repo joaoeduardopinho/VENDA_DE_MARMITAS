@@ -1,7 +1,165 @@
 /**
  * MARMITABOT - SISTEMA CLIENT-SIDE DE ATENDIMENTO E VENDAS
- * Arquitetura de Engenharia de Software com Guardrails de Segurança Defensiva
+ * Arquitetura de Engenharia de Software com Guardrails de Segurança Defensiva e Módulo NLP
  */
+
+// ==========================================
+// MÓDULO DE PROCESSAMENTO DE LINGUAGEM NATURAL (NLP)
+// ==========================================
+class NLPProcessor {
+  // Remove acentuação e padroniza texto (Normalização)
+  static normalize(text) {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // remove acentos
+      .trim();
+  }
+
+  // Tokenização básica (quebra em palavras ignorando pontuações supérfluas)
+  static tokenize(text) {
+    const norm = this.normalize(text);
+    return norm.match(/[\wÀ-ÿ]+/g) || [];
+  }
+
+  // Distância de Levenshtein para medir proximidade entre duas palavras (Tolerância a erros de digitação)
+  static levenshteinDistance(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substituição
+            matrix[i][j - 1] + 1,     // inserção
+            matrix[i - 1][j] + 1      // deleção
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
+  // Similaridade baseada em Levenshtein normalizada (0 a 1)
+  static similarity(s1, s2) {
+    const a = this.normalize(s1);
+    const b = this.normalize(s2);
+    if (!a && !b) return 1.0;
+    if (!a || !b) return 0.0;
+    if (a === b) return 1.0;
+    if (a.includes(b) || b.includes(a)) return 0.9;
+
+    const distance = this.levenshteinDistance(a, b);
+    const maxLen = Math.max(a.length, b.length);
+    return 1 - (distance / maxLen);
+  }
+
+  // Stemming / Lematização simplificada para português (reduz plurais e variações comuns)
+  static stem(word) {
+    let w = this.normalize(word);
+    if (w.endsWith('oes')) return w.slice(0, -3) + 'ao';
+    if (w.endsWith('res') || w.endsWith('zes') || w.endsWith('nes')) return w.slice(0, -2);
+    if (w.endsWith('is') && w.length > 3) return w.slice(0, -2) + 'l';
+    if (w.endsWith('s') && !w.endsWith('ss') && w.length > 3) return w.slice(0, -1);
+    return w;
+  }
+
+  // Classificador de Intenção (Intent Recognition)
+  static detectIntent(text) {
+    const norm = this.normalize(text);
+    const tokens = this.tokenize(norm).map(t => this.stem(t));
+
+    const intents = {
+      GREETING: ['ola', 'oi', 'opa', 'bom dia', 'boa tarde', 'boa noite', 'e ai'],
+      VIEW_MENU: ['cardapio', 'menu', 'prato', 'opcao', 'comida', 'almoco', 'refeicao', 'hoje'],
+      CHECKOUT: ['fechar', 'finalizar', 'pagar', 'encerrar', 'total', 'conta', 'carrinho', 'resumo', 'pedir'],
+      HELP: ['ajuda', 'socorro', 'como funciona', 'duvida', 'instrucao', 'exemplo'],
+      RESTART: ['limpar', 'reiniciar', 'cancelar tudo', 'recomecar', 'zerar', 'novo pedido'],
+      AFFIRMATIVE: ['sim', 'claro', 'pode ser', 'isso', 'correto', 'quero', 'com certeza'],
+      NEGATIVE: ['nao', 'nunca', 'cancelar', 'deixa']
+    };
+
+    for (const [intent, phrases] of Object.entries(intents)) {
+      for (const phrase of phrases) {
+        if (norm.includes(phrase)) return intent;
+        for (const token of tokens) {
+          if (this.similarity(token, phrase) >= 0.85) return intent;
+        }
+      }
+    }
+
+    return 'UNKNOWN';
+  }
+
+  // Reconhecimento de Entidades Nomeadas / Argumentos (NER - Named Entity Recognition)
+  static extractEntities(text) {
+    const norm = this.normalize(text);
+    const entities = {
+      quantity: 1,
+      cookingPoint: null,
+      modifiers: [],
+      paymentMethod: null
+    };
+
+    // 1. Extração Numérica / Quantidade (algarismos ou palavras)
+    const numberWords = {
+      'um': 1, 'uma': 1, 'dois': 2, 'duas': 2, 'tres': 3, 'quatro': 4,
+      'cinco': 5, 'seis': 6, 'sete': 7, 'oito': 8, 'nove': 9, 'dez': 10
+    };
+    const digitsMatch = norm.match(/\b(\d+)\b/);
+    if (digitsMatch) {
+      const q = parseInt(digitsMatch[1]);
+      if (q > 0 && q <= 30) entities.quantity = q;
+    } else {
+      for (const [word, val] of Object.entries(numberWords)) {
+        if (new RegExp(`\\b${word}\\b`).test(norm)) {
+          entities.quantity = val;
+          break;
+        }
+      }
+    }
+
+    // 2. Extração do Ponto da Carne
+    if (/bem\s*passad[ao]|bem\s*tostad[ao]|torrad[ao]/.test(norm)) {
+      entities.cookingPoint = 'Bem passado';
+    } else if (/mal\s*passad[ao]|sangrand[ao]/.test(norm)) {
+      entities.cookingPoint = 'Mal passado';
+    } else if (/ao\s*ponto|ponto/.test(norm)) {
+      entities.cookingPoint = 'Ao ponto';
+    }
+
+    // 3. Modificações de Ingredientes e Temperos (NER com negações e preferências)
+    const ingredientPatterns = [
+      { regex: /(?:sem|tira|retira|sem)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
+      { regex: /(?:pouco|menos|baixo|sem)\s+(sal)/i, tag: 'Pouco sal' },
+      { regex: /(?:sem|tira|retira)\s+(alho)/i, tag: 'Sem alho' },
+      { regex: /(?:sem|tira|retira)\s+(feijao|feijoes)/i, tag: 'Sem feijão' },
+      { regex: /(?:com\s+arroz\s+integral|arroz\s+integral)/i, tag: 'Arroz integral' },
+      { regex: /(?:sem|tira|retira)\s+(salada|alface|tomate)/i, tag: 'Sem salada' },
+      { regex: /(?:molho\s+[aà]\s*parte|separado)/i, tag: 'Molho à parte' },
+      { regex: /(?:bastante|com|mais)\s+(pimenta)/i, tag: 'Com pimenta da casa' },
+      { regex: /(?:com\s+bastante\s+cebola|capricha\s+na\s+cebola)/i, tag: 'Com cebola extra' }
+    ];
+
+    ingredientPatterns.forEach(pattern => {
+      if (pattern.regex.test(norm)) {
+        entities.modifiers.push(pattern.tag);
+      }
+    });
+
+    // 4. Reconhecimento de Forma de Pagamento
+    if (norm.includes('pix')) entities.paymentMethod = 'PIX';
+    else if (norm.includes('cartao') || norm.includes('credito') || norm.includes('debito')) entities.paymentMethod = 'Cartão na Entrega';
+    else if (norm.includes('dinheiro')) entities.paymentMethod = 'Dinheiro';
+
+    return entities;
+  }
+}
 
 // 1. BASE DE CONHECIMENTO & CARDÁPIO DIÁRIO
 const MENU_DATA = {
@@ -80,11 +238,11 @@ class MarmitaBotEngine {
 
     const trimmed = input.trim();
 
-    // 1. Defesa contra estouro de tokens / Flood / DoS
-    if (trimmed.length > 200) {
+    // 1. Defesa contra estouro de tokens / Flood / DoS / Limite de Caracteres
+    if (trimmed.length > 300) {
       return {
         safe: false,
-        reason: '⚠️ Mensagem muito longa. Para economia de tokens e segurança, limite sua mensagem a no máximo 200 caracteres.'
+        reason: '⚠️ Mensagem muito longa. O limite máximo permitido é de 300 caracteres para segurança e economia de processamento.'
       };
     }
 
@@ -126,7 +284,10 @@ class MarmitaBotEngine {
       /<script[\s\S]*?>[\s\S]*?<\/script>/i,
       /javascript:/i,
       /onerror\s*=/i,
-      /onload\s*=/i
+      /onload\s*=/i,
+      /eval\s*\(/i,
+      /document\.cookie/i,
+      /window\.location/i
     ];
 
     for (const pattern of injectionPatterns) {
@@ -172,10 +333,10 @@ class MarmitaBotEngine {
   }
 
   // ==========================================
-  // PROCESSAMENTO DE LINGUAGEM NATURAL (CLIENT-SIDE)
+  // PROCESSAMENTO DE LINGUAGEM NATURAL (CLIENT-SIDE NLP PIPELINE)
   // ==========================================
   processUserMessage(rawText) {
-    // Validação pelos Guardrails
+    // 1. Validação pelos Guardrails de Segurança Defensiva
     const securityCheck = this.validateSecurityGuardrails(rawText);
     if (!securityCheck.safe) {
       return {
@@ -184,46 +345,18 @@ class MarmitaBotEngine {
       };
     }
 
-    const text = rawText.trim().toLowerCase();
-
-    // Comandos de controle
-    if (this.matchesAny(text, ['limpar', 'reiniciar', 'cancelar tudo', 'começar de novo'])) {
-      this.cart = [];
-      this.sessionState.step = 'GREETING';
-      this.sessionState.pendingItem = null;
-      return {
-        reply: '🔄 Carrinho limpo e conversa reiniciada! Como posso te ajudar hoje? Diga o que deseja comer ou digite "cardápio".'
-      };
-    }
-
-    if (this.matchesAny(text, ['ajuda', 'socorro', 'como funciona', 'opções', 'comandos'])) {
-      return {
-        reply: `💡 **Como posso te ajudar:**
-1. Peça marmitas pelo nome: *"Quero 2 bife de vaca bem passado sem cebola"*
-2. Consulte o cardápio: *"ver cardápio"*
-3. Finalize quando quiser: *"fechar pedido"* ou *"concluir"*
-4. Personalize: altere temperos, acompanhamentos e pontos de carne à vontade!`
-      };
-    }
-
-    if (this.matchesAny(text, ['cardápio', 'cardapio', 'menu', 'pratos', 'opcoes'])) {
-      return {
-        reply: this.formatMenuSummary(this.currentDayKey)
-      };
-    }
-
-    if (this.matchesAny(text, ['total', 'fechar', 'concluir', 'finalizar', 'pagar', 'carrinho', 'resumo'])) {
-      return this.handleCheckoutSummary();
-    }
-
-    // Identificação de Item do Cardápio
-    const matchedItem = this.findMatchingItem(text);
-    if (matchedItem) {
-      return this.handleItemSelection(matchedItem, text);
-    }
+    // 2. Pré-processamento e Análise de NLP (Normalização e Classificação de Intenção)
+    const norm = NLPProcessor.normalize(rawText);
+    const intent = NLPProcessor.detectIntent(rawText);
+    const entities = NLPProcessor.extractEntities(rawText);
 
     // Se estiver no fluxo de finalização e enviou endereço
     if (this.sessionState.step === 'ASKING_ADDRESS') {
+      if (rawText.trim().length < 5) {
+        return {
+          reply: 'Por favor, informe um endereço completo válido (Rua, número e bairro) para calcularmos e realizarmos a entrega.'
+        };
+      }
       this.sessionState.address = rawText;
       this.sessionState.step = 'PAYMENT';
       return {
@@ -232,47 +365,99 @@ class MarmitaBotEngine {
     }
 
     if (this.sessionState.step === 'PAYMENT') {
-      this.sessionState.payment = rawText;
+      const payment = entities.paymentMethod || rawText;
+      this.sessionState.payment = payment;
       this.sessionState.step = 'COMPLETED';
       return {
-        reply: `🎉 Pedido registrado com sucesso!\n\nForma de Pagamento: **${this.escapeHtml(rawText)}**.\nClique no botão verde **"Finalizar Pedido"** ao lado para enviar a comanda pronta no WhatsApp do restaurante ou nos confirmar.`
+        reply: `🎉 Pedido registrado com sucesso!\n\nForma de Pagamento: **${this.escapeHtml(payment)}**.\nClique no botão verde **"Finalizar Pedido"** ao lado para enviar a comanda pronta no WhatsApp do restaurante ou confirmar.`
       };
     }
 
-    // Fallback defensivo com sugestões
+    // 3. Comandos baseados na Intenção detectada pelo NLP
+    if (intent === 'RESTART') {
+      this.cart = [];
+      this.sessionState.step = 'GREETING';
+      this.sessionState.pendingItem = null;
+      return {
+        reply: '🔄 Carrinho limpo e conversa reiniciada! Como posso te ajudar hoje? Diga o que deseja comer ou digite "cardápio".'
+      };
+    }
+
+    if (intent === 'HELP') {
+      return {
+        reply: `💡 **Como posso te ajudar (Motor NLP Ativo):**
+1. Peça marmitas em linguagem natural: *"Quero 2 bife de vaca bem passado sem cebola"*
+2. Consulte o cardápio: *"ver cardápio"* ou *"o que tem pra hoje?"*
+3. Finalize quando quiser: *"fechar pedido"* ou *"concluir"*
+4. Personalize: altere temperos, acompanhamentos e pontos de carne à vontade!`
+      };
+    }
+
+    if (intent === 'VIEW_MENU') {
+      return {
+        reply: this.formatMenuSummary(this.currentDayKey)
+      };
+    }
+
+    if (intent === 'CHECKOUT') {
+      return this.handleCheckoutSummary();
+    }
+
+    // 4. Reconhecimento de Prato com Algoritmo de Similaridade / NLP
+    const matchedItem = this.findMatchingItemNLP(rawText);
+    if (matchedItem) {
+      return this.handleItemSelectionNLP(matchedItem, rawText, entities);
+    }
+
+    // Fallback inteligente
     return {
-      reply: `Desculpe, não entendi perfeitamente. Você gostaria de pedir algum prato do cardápio de hoje?\n\nExemplo de como pedir:\n👉 *"Quero 1 Bife de vaca ao ponto sem cebola e pouco sal"* ou digite **"cardápio"** para ver as opções.`
+      reply: `Desculpe, não consegui identificar o prato desejado. Você gostaria de pedir algum prato do cardápio de hoje?\n\nExemplo de como pedir:\n👉 *"Quero 1 Bife de vaca ao ponto sem cebola e pouco sal"* ou digite **"cardápio"** para ver as opções do dia.`
     };
   }
 
-  // Identifica prato através de palavras-chave
-  findMatchingItem(text) {
+  // Identifica prato usando NLP: correspondência exata, sinônimos e similaridade de Levenshtein
+  findMatchingItemNLP(text) {
+    const norm = NLPProcessor.normalize(text);
+    const tokens = NLPProcessor.tokenize(norm).map(t => NLPProcessor.stem(t));
     const currentMenu = MENU_DATA[this.currentDayKey] || MENU_DATA['segunda'];
-    
-    // Busca no cardápio de hoje primeiro
+
+    // 1. Busca no cardápio de hoje
     for (const item of currentMenu) {
-      const nameTokens = item.name.toLowerCase().split(' ');
-      if (text.includes(item.id) || text.includes(item.name.toLowerCase())) {
+      const itemNorm = NLPProcessor.normalize(item.name);
+      if (norm.includes(itemNorm) || norm.includes(NLPProcessor.normalize(item.id))) {
         return item;
       }
-      if (item.meatType === 'bovino' && (text.includes('bife') || text.includes('vaca') || text.includes('carne'))) {
+
+      // Token match
+      const itemTokens = NLPProcessor.tokenize(itemNorm).map(t => NLPProcessor.stem(t));
+      for (const t of tokens) {
+        for (const it of itemTokens) {
+          if (it.length > 3 && NLPProcessor.similarity(t, it) >= 0.8) {
+            return item;
+          }
+        }
+      }
+
+      // Regras semânticas por tipo de carne
+      if (item.meatType === 'bovino' && (norm.includes('bife') || norm.includes('vaca') || norm.includes('carne') || norm.includes('alcatra') || norm.includes('picanha'))) {
         return item;
       }
-      if (item.meatType === 'suino' && (text.includes('feijoada') || text.includes('virado') || text.includes('bisteca'))) {
+      if (item.meatType === 'suino' && (norm.includes('feijoada') || norm.includes('virado') || norm.includes('bisteca') || norm.includes('porco'))) {
         return item;
       }
-      if (item.meatType === 'frango' && (text.includes('frango') || text.includes('strogonoff') || text.includes('parmegiana'))) {
+      if (item.meatType === 'frango' && (norm.includes('frango') || norm.includes('strogonoff') || norm.includes('parmegiana') || norm.includes('sobrecoxa') || norm.includes('galinha'))) {
         return item;
       }
-      if (item.meatType === 'peixe' && (text.includes('peixe') || text.includes('tilapia') || text.includes('tilápia'))) {
+      if (item.meatType === 'peixe' && (norm.includes('peixe') || norm.includes('tilapia') || norm.includes('pescado'))) {
         return item;
       }
     }
 
-    // Busca geral nos outros dias se mencionado
+    // 2. Busca nos outros dias caso o usuário mencione pratos de outro dia
     for (const day in MENU_DATA) {
       for (const item of MENU_DATA[day]) {
-        if (text.includes(item.name.toLowerCase())) {
+        const itemNorm = NLPProcessor.normalize(item.name);
+        if (norm.includes(itemNorm)) {
           return item;
         }
       }
@@ -281,98 +466,47 @@ class MarmitaBotEngine {
     return null;
   }
 
-  // Extrai customizações do texto (quantidade, ponto da carne, temperos)
-  extractCustomizations(text, item) {
-    // 1. Quantidade
-    let quantity = 1;
-    const qtyMatch = text.match(/(\d+)\s*(marmita|unidade|porcao|porção|bife|prato)?/i);
-    if (qtyMatch && parseInt(qtyMatch[1]) > 0 && parseInt(qtyMatch[1]) < 50) {
-      quantity = parseInt(qtyMatch[1]);
-    } else {
-      if (text.includes('duas') || text.includes('dois')) quantity = 2;
-      if (text.includes('tres') || text.includes('três')) quantity = 3;
-    }
-
-    // 2. Ponto da carne (apenas relevante para bovino)
+  // Processa a seleção do item com entidades extraídas pelo NLP
+  handleItemSelectionNLP(item, rawText, entities) {
+    const quantity = entities.quantity || 1;
     let cookingPoint = null;
-    if (item.meatType === 'bovino' || text.includes('ponto') || text.includes('passad')) {
-      if (text.includes('bem passad') || text.includes('bem tostado') || text.includes('torrad')) {
-        cookingPoint = 'Bem passado';
-      } else if (text.includes('mal passad') || text.includes('sangrando')) {
-        cookingPoint = 'Mal passado';
-      } else if (text.includes('ao ponto') || text.includes('ponto')) {
-        cookingPoint = 'Ao ponto';
-      } else {
-        cookingPoint = 'Ao ponto (Padrão do chef)';
-      }
+
+    if (item.meatType === 'bovino') {
+      cookingPoint = entities.cookingPoint || 'Ao ponto (Padrão)';
     }
 
-    // 3. Temperos e Modificações de Ingredientes
-    const modifications = [];
-    if (text.includes('sem cebola') || text.includes('sem cebolas') || text.includes('tira cebola') || text.includes('não quero cebola')) {
-      modifications.push('Sem cebola');
-    }
-    if (text.includes('pouco sal') || text.includes('menos sal') || text.includes('sem sal')) {
-      modifications.push('Pouco sal');
-    }
-    if (text.includes('sem alho')) {
-      modifications.push('Sem alho');
-    }
-    if (text.includes('sem feijao') || text.includes('sem feijão')) {
-      modifications.push('Sem feijão');
-    }
-    if (text.includes('arroz integral')) {
-      modifications.push('Arroz integral');
-    }
-    if (text.includes('sem salada')) {
-      modifications.push('Sem salada');
-    }
-    if (text.includes('molho a parte') || text.includes('molho à parte')) {
-      modifications.push('Molho à parte');
-    }
-    if (text.includes('bastante pimenta') || text.includes('com pimenta')) {
-      modifications.push('Com pimenta da casa');
-    }
-
-    // Captura livre caso o usuário use "obs:" ou "com:"
-    const obsMatch = text.match(/obs:?\s*(.*?)(?=\.|$)/i);
+    // Combina modificações extraídas com observações manuais (obs: ...)
+    const modifications = [...entities.modifiers];
+    const obsMatch = rawText.match(/obs:?\s*(.*?)(?=\.|$)/i);
     if (obsMatch && obsMatch[1]) {
       modifications.push(`Obs: ${obsMatch[1].trim()}`);
     }
 
-    return {
-      quantity,
-      cookingPoint,
-      modifications: modifications.length > 0 ? modifications.join(', ') : 'Tempero padrão da casa'
-    };
-  }
-
-  handleItemSelection(item, text) {
-    const custom = this.extractCustomizations(text, item);
+    const notes = modifications.length > 0 ? modifications.join(', ') : 'Tempero padrão da casa';
 
     const orderItem = {
       id: `${item.id}-${Date.now()}`,
       name: item.name,
       unitPrice: item.price,
-      quantity: custom.quantity,
-      cookingPoint: custom.cookingPoint,
-      notes: custom.modifications,
-      total: item.price * custom.quantity
+      quantity: quantity,
+      cookingPoint: cookingPoint,
+      notes: notes,
+      total: item.price * quantity
     };
 
     this.cart.push(orderItem);
 
-    let reply = `🍽️ Adicionei ao seu pedido:\n- **${custom.quantity}x ${item.name}**\n- Valor unitário: R$ ${item.price.toFixed(2).replace('.', ',')}`;
-    if (custom.cookingPoint) {
-      reply += `\n- Ponto da carne: **${custom.cookingPoint}**`;
+    let reply = `🍽️ Adicionei ao seu pedido:\n- **${quantity}x ${item.name}**\n- Valor unitário: R$ ${item.price.toFixed(2).replace('.', ',')}`;
+    if (cookingPoint) {
+      reply += `\n- Ponto da carne: **${cookingPoint}**`;
     }
-    reply += `\n- Ajuste de temperos: **${custom.modifications}**`;
+    reply += `\n- Ajuste de temperos: **${notes}**`;
     reply += `\n- Subtotal do item: **R$ ${orderItem.total.toFixed(2).replace('.', ',')}**`;
 
     const subtotal = this.calculateSubtotal();
     const total = subtotal + DELIVERY_FEE;
 
-    reply += `\n\n📦 Seu pedido no momento tem **${this.cart.length} item(ns)** somando **R$ ${total.toFixed(2).replace('.', ',')}** (com entrega inclusa).\n\nDeseja adicionar mais alguma marmita ou quer **fechar o pedido** agora?`;
+    reply += `\n\n📦 Seu pedido no momento tem **${this.cart.length} item(ns)** somando **R$ ${total.toFixed(2).replace('.', ',')}** (com taxa de entrega inclusa).\n\nDeseja adicionar mais alguma marmita ou quer **fechar o pedido** agora?`;
 
     return { reply, cartUpdated: true };
   }
@@ -467,6 +601,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnToggleSidebar = document.getElementById('btnToggleSidebar');
   const sidebar = document.getElementById('sidebar');
   const quickActionsBar = document.getElementById('quickActionsBar');
+  const charCounter = document.getElementById('charCounter');
+
+  // Monitoramento dinâmico do contador de caracteres (limite 300)
+  if (userInput && charCounter) {
+    userInput.addEventListener('input', () => {
+      const len = userInput.value.length;
+      charCounter.textContent = `${len}/300`;
+
+      if (len >= 300) {
+        charCounter.classList.add('limit-reached');
+        charCounter.classList.remove('limit-near');
+      } else if (len >= 260) {
+        charCounter.classList.add('limit-near');
+        charCounter.classList.remove('limit-reached');
+      } else {
+        charCounter.classList.remove('limit-near', 'limit-reached');
+      }
+    });
+  }
 
   // Renderizar cardápio na sidebar
   function renderSidebarMenu(dayKey) {
@@ -594,8 +747,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     appendMessage('user', text);
     userInput.value = '';
+    if (charCounter) {
+      charCounter.textContent = '0/300';
+      charCounter.classList.remove('limit-near', 'limit-reached');
+    }
 
-    // Processar pelo motor inteligente com guardrails
+    // Processar pelo motor inteligente com guardrails e NLP
     setTimeout(() => {
       const result = botEngine.processUserMessage(text);
       appendMessage('bot', result.reply, result.isGuardrailAlert || false);
