@@ -1,108 +1,85 @@
-# 🍱 MarmitaBot - Chatbot de Vendas de Marmitas
+# 🍱 Marmitas Brasília - Chatbot 100% Client-Side & Sem LLM
 
 > 🌐 **Acesse o site online:** [https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/](https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/)
 
-Chatbot conversacional interativo desenvolvido em **JavaScript Vanilla (100% Client-Side)** para atendimento, personalização de marmitas, cálculo dinâmico de taxa de entrega e fechamento de pedidos com suporte a checkout via WhatsApp.
-
-Desenvolvido sob padrões de **Engenharia de Software / Sistemas de Informação**, com arquitetura modular, sanitização de entrada e **Guardrails defensivos multicamadas contra Prompt Injection, Jailbreak e Exfiltração de Tokens**.
+Aplicação web gastronômica de alta performance para pedidos de marmitas em Brasília (DF). O atendimento conversacional é **100% Client-Side**, processado inteiramente dentro do navegador do usuário por algoritmos determinísticos de **Processamento de Linguagem Natural (NLP)** e Máquina de Estados Finita — **sem qualquer uso de LLM, sem servidores backend e sem consumo de APIs pagas**.
 
 ---
 
-## 🌐 Demonstração Online
+## 🎨 Design Profissional & UI Refinada
 
-A aplicação está hospedada e disponível via GitHub Pages:
-👉 **[Clique aqui para abrir o MarmitaBot](https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/)**
-
----
-
-## 🚀 Funcionalidades
-
-- **Cardápio Dinâmico por Dia da Semana**:
-  - Exibe os pratos disponíveis hoje ou permite ao usuário consultar o cardápio de qualquer dia da semana (Segunda a Domingo).
-  - Preços unitários por item claramente informados.
-- **Processamento de Linguagem Natural & Seleção por Texto**:
-  - Reconhecimento flexível de intenções e nomes dos pratos digitados no chat.
-- **Personalização Completa da Marmita**:
-  - Customização de ingredientes e temperos (ex: *"sem cebola"*, *"sem salada"*, *"molho à parte"*).
-  - Ponto de cozimento para carnes (*"ao ponto"*, *"bem passada"*, *"mal passada"*).
-  - Quantidade de marmitas e itens adicionais.
-- **Cálculo Transparente de Entrega e Total**:
-  - Endereço de entrega com cálculo automático de taxa e prazo estimado.
-  - Resumo de pedido discriminado item por item com subtotais.
-- **Fechamento e Integração com WhatsApp**:
-  - Opções de pagamento (PIX, Cartão na Entrega, Dinheiro).
-  - Exportação formatada direta para o WhatsApp do restaurante.
-- **Segurança & Guardrails Defensivos (Anti-Injection / Anti-Jailbreak)**:
-  - **Validação de Entrada (Regex & Heurísticas)**: Bloqueia tentativas como `ignore previous instructions`, `DAN mode`, `system prompt`, `<script>`, markdown de injeção, etc.
-  - **Escopo Rígido de Conversação**: Se a mensagem fugir do domínio de pedidos de marmitas, o bot adota fallback seguro e orienta o cliente a focar no pedido.
-  - **Sanitização de HTML contra XSS**: Renderização segura de todas as mensagens na tela.
-  - **Suporte Híbrido**: Funciona 100% offline via State-Machine/NLP local e suporta chave Gemini API opcional (executada totalmente pelo browser do usuário).
+- **Identidade Visual Brasília**: Paleta gastronômica com tons quentes de terra, dourado e verde fresco (`#d9480f`, `#2b8a3e`, `#f59f00`).
+- **Glassmorphism & Microinterações**: Transições suaves, sombras em camadas e tipografia com *Plus Jakarta Sans* e *Cabinet Grotesk*.
+- **Arquitetura Visual em 3 Colunas (Desktop)**:
+  1. **Sidebar Esquerda**: Cardápio do dia interativo (clique para adicionar), seletor de dias da semana e badges de entrega no DF.
+  2. **Área Central**: Chatbot conversacional com balões estilizados, indicador de digitação, botões de ação rápida e contador de 300 caracteres em tempo real.
+  3. **Sidebar Direita**: Comanda dinâmica com subtotal, taxa de entrega fixa de Brasília e botão direto para envio no WhatsApp.
+- **Responsividade Total**: Layout adaptável para smartphones, tablets e desktops.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## ⚡ Por que 100% Client-Side e Sem LLM?
 
-- **HTML5** & **CSS3 Moderno** (Design responsivo, Glassmorphism, temas de restaurante aconchegante, adaptável a smartphones e desktops).
-- **JavaScript ES6+ (Client-side puro)**: Zero dependências de servidor ou Node.js backend.
-- **Font Awesome & Google Fonts**: Ícones e tipografia moderna.
+1. **Privacidade Absoluta**: Nenhuma mensagem, endereço ou dado do cliente trafega para servidores de terceiros ou modelos de linguagem externos.
+2. **Custo Zero & Zero Latência**: Funciona instantaneamente sem necessidade de tokens de API (OpenAI, Gemini, Claude) nem backend Node/Python.
+3. **Respostas Imediatas e Previsíveis**: Não há risco de "alucinações", invenção de pratos ou quebra de preços tabelados.
+4. **Disponibilidade 100%**: A aplicação continua funcionando normalmente mesmo offline após ser carregada no navegador.
 
 ---
 
-## 📂 Estrutura de Arquivos
+## 🧠 Pipeline de Processamento de Linguagem Natural (NLP no Browser)
+
+O motor `NLPProcessor` em [app.js](app.js) executa um fluxo completo de NLP escrito em JavaScript puro:
+
+1. **Normalização & Remoção de Acentos (NFD)**:
+   - Converte o texto para minúsculas e remove acentos, permitindo que *"cardápio"*, *"cardapio"*, *"marmitão"* e *"marmitao"* sejam compreendidos identicamente.
+2. **Tokenização & Lematização/Stemming em Português**:
+   - Quebra as sentenças em tokens e reduz palavras flexionadas às suas raízes (ex: plurais como *"marmitas"* $\rightarrow$ *"marmita"*, *"opções"* $\rightarrow$ *"opcao"*).
+3. **Similaridade por Distância de Levenshtein**:
+   - Algoritmo que mede a distância entre termos para tolerar erros de digitação comuns no celular (ex: *"bifee"*, *"frangoo"*, *"feijoda"*).
+4. **Classificador de Intenções (Intent Recognition)**:
+   - Mapeia intenções do usuário (`VIEW_MENU`, `CHECKOUT`, `RESTART`, `HELP`, `AFFIRMATIVE`, `NEGATIVE`).
+5. **Reconhecimento de Entidades Nomeadas (NER - Named Entity Recognition)**:
+   - **Quantidades**: Detecta números em algarismos (`1`, `2`) e por extenso (`duas`, `três`).
+   - **Ponto da Carne**: Extrai com precisão *"ao ponto"*, *"bem passado"*, *"mal passado"*.
+   - **Modificadores & Restrições**: Filtra termos como *"sem cebola"*, *"pouco sal"*, *"sem salada"*, *"molho à parte"*, *"arroz integral"*.
+   - **Forma de Pagamento**: Reconhece termos como *"PIX"*, *"cartão"* e *"dinheiro"*.
+
+---
+
+## 🛡️ Camada de Guardrails & Segurança Defensiva
+
+1. **Limite Rígido de 300 Caracteres**:
+   - Trava física via atributo HTML `maxlength="300"`.
+   - Contador visual em tempo real no campo de entrada (`0/300`) com alertas de limite.
+   - Validação preventiva na máquina de estados contra ataques de flood e estouro de memória.
+2. **Anti-Injection & Sanitização XSS**:
+   - Bloqueio de tags `<script>`, `onerror`, `onload`, `eval()`, chamadas a `document.cookie` e escape de HTML em todas as mensagens renderizadas.
+3. **Anti-Jailbreak & Modo Imutável**:
+   - Rejeição de instruções de evasão (`ignore instructions`, `DAN mode`, `sudo`, `system prompt`).
+4. **Isolamento de Domínio**:
+   - O assistente recusa ativamente perguntas que fujam do propósito de marmitas (ex: redações, código, assuntos gerais).
+
+---
+
+## 📂 Estrutura do Projeto
 
 ```text
-├── index.html        # Interface de usuário do Chatbot e carrinho
-├── styles.css        # Estilos modernos, responsividade e animações
-├── app.js            # Lógica do chatbot, máquina de estados, regras de negócio e guardrails
+├── index.html        # Estrutura HTML5 semântica e acessível
+├── styles.css        # Design System moderno, responsivo e paleta gastronômica
+├── app.js            # Engine Client-side: NLP, Guardrails e Máquina de Estados
 └── README.md         # Documentação técnica do projeto
 ```
 
 ---
 
-## 🛡️ Camada de Guardrails & Segurança
+## 🚀 Como Executar
 
-O sistema implementa múltiplas camadas defensivas:
-1. **Limite Rígido de Caracteres (300 caracteres)**:
-   - Bloqueio via HTML `maxlength="300"` e validação preventiva no motor JavaScript com indicador visual dinâmico.
-   - Previne estouro de buffer, ataques de flood, exaustão de contexto e DoS.
-2. **Detector de Jailbreak & Prompt Injection**:
-   - Detecta termos de evasão como `jailbreak`, `override`, `system prompt`, `sudo`, `pretend you are`, `mode developer`, etc.
-   - Bloqueia payloads de injeção XSS como `<script>`, `onerror`, `onload`, `eval` e acessos maliciosos a cookies.
-3. **Defesa contra Exfiltração de Tokens e Credenciais**:
-   - Bloqueia e alerta caso o usuário tente extrair ou injetar chaves de API, credenciais ou tokens sensíveis.
-4. **Isolamento de Domínio**:
-   - O bot rejeita solicitações fora do escopo de marmitas (ex: redações, código, perguntas aleatórias).
+Por ser uma aplicação **100% Client-Side**, não requer Node.js, banco de dados ou instalação:
 
----
-
-## 🧠 Processamento de Linguagem Natural (NLP)
-
-O MarmitaBot conta com um pipeline de NLP implementado em JavaScript client-side puro:
-- **Normalização e Remoção de Acentos (NFD)**: Facilita correspondência independente de pontuação ou acentuação gráfica.
-- **Tokenização e Stemming**: Reduz palavras às suas raízes para flexões de plural e gênero.
-- **Similaridade com Distância de Levenshtein**: Tolera pequenos erros ortográficos do cliente ao digitar pratos ou comandos.
-- **Classificação de Intenções (Intent Recognition)**: Reconhece intenções como saudações, consulta de cardápio, checkout, pedidos de ajuda ou cancelamento.
-- **Reconhecimento de Entidades (NER - Named Entity Recognition)**:
-  - Quantidades (numerais ou por extenso como *"duas"*, *"três"*).
-  - Ponto da carne (*"ao ponto"*, *"bem passado"*, *"mal passado"*).
-  - Preferências e restrições de ingredientes (*"sem cebola"*, *"pouco sal"*, *"molho à parte"*).
-  - Formas de pagamento (*"pix"*, *"cartão"*, *"dinheiro"*).
-
----
-
-## 💻 Como Executar
-
-Por ser uma aplicação **100% Client-Side**, não é necessário instalar nenhum ambiente ou servidor:
-
-1. Clone o repositório ou baixe os arquivos:
+1. Clone ou baixe o repositório:
    ```bash
-   git clone <URL_DO_SEU_REPOSITORIO>
+   git clone https://github.com/joaoeduardopinho/VENDA_DE_MARMITAS.git
    ```
-2. Abra o arquivo `index.html` em qualquer navegador moderno (Chrome, Edge, Firefox, Safari).
-3. Comece a conversar e pedir suas marmitas!
-   git add .
-   git commit -m "feat: Chatbot de vendas de marmitas client-side com guardrails"
-   git branch -M main
-   git remote add origin https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
-   git push -u origin main
-   ```
+2. Dê um duplo clique no arquivo `index.html` para abrir diretamente no seu navegador (Chrome, Edge, Firefox, Safari).
+3. Converse com a **Candanga** e faça seus pedidos de marmitas em Brasília!

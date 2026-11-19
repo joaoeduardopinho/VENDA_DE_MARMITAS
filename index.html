@@ -3,75 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MarmitaBot - Pedido de Marmitas Online</title>
+  <title>Marmitas Brasília - Atendimento Inteligente & Pedidos Online</title>
+  <meta name="description" content="Marmitas artesanais e caseiras em Brasília com atendimento rápido 100% no navegador (Client-Side, sem LLM/servidor).">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-layout">
-    <!-- Sidebar com Cardápio do Dia & Informações -->
+    <!-- Sidebar: Cardápio do Dia & Informações de Brasília -->
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="logo-icon">🍱</div>
-        <div>
-          <h2>Marmitaria Sabor Real</h2>
-          <span class="status-badge"><span class="status-dot"></span> Atendimento Online</span>
+        <div class="logo-badge">
+          <span class="logo-emoji">🍱</span>
+          <span class="bsb-tag">DF</span>
+        </div>
+        <div class="brand-text">
+          <h2>Marmitas Brasília</h2>
+          <span class="status-badge"><span class="status-dot"></span> Entregas no DF • Online</span>
         </div>
       </div>
 
       <div class="day-selector-card">
-        <label for="daySelect"><i class="fa-regular fa-calendar-days"></i> Dia do Cardápio:</label>
-        <select id="daySelect" class="form-select">
-          <option value="hoje">📅 Cardápio de Hoje</option>
-          <option value="segunda">Segunda-feira</option>
-          <option value="terca">Terça-feira</option>
-          <option value="quarta">Quarta-feira</option>
-          <option value="quinta">Quinta-feira</option>
-          <option value="sexta">Sexta-feira</option>
-          <option value="sabado">Sábado</option>
-          <option value="domingo">Domingo</option>
-        </select>
+        <label for="daySelect"><i class="fa-regular fa-calendar-days"></i> Cardápio por Dia:</label>
+        <div class="select-wrapper">
+          <select id="daySelect" class="form-select">
+            <option value="hoje">📅 Cardápio de Hoje</option>
+            <option value="segunda">Segunda-feira</option>
+            <option value="terca">Terça-feira</option>
+            <option value="quarta">Quarta-feira</option>
+            <option value="quinta">Quinta-feira</option>
+            <option value="sexta">Sexta-feira</option>
+            <option value="sabado">Sábado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-icon"></i>
+        </div>
       </div>
 
       <div class="menu-container">
         <div class="menu-header">
-          <h3>Pratos Disponíveis</h3>
+          <div>
+            <h3>Pratos do Cardápio</h3>
+            <p class="menu-sub">Toque em um prato para pedir</p>
+          </div>
           <span class="badge" id="menuDayLabel">Hoje</span>
         </div>
         <div class="menu-list" id="menuList">
-          <!-- Gerado via JavaScript -->
+          <!-- Gerado dinamicamente via JavaScript -->
         </div>
       </div>
 
       <div class="quick-info">
         <div class="info-item">
-          <i class="fa-solid fa-motorcycle"></i>
+          <div class="info-icon delivery"><i class="fa-solid fa-motorcycle"></i></div>
           <div>
             <strong>Taxa de Entrega</strong>
-            <p>R$ 6,00 fixa para toda a região</p>
+            <p>R$ 6,00 fixa (Plano Piloto & Regiões)</p>
           </div>
         </div>
         <div class="info-item">
-          <i class="fa-solid fa-clock"></i>
+          <div class="info-icon time"><i class="fa-solid fa-bolt"></i></div>
           <div>
             <strong>Tempo Médio</strong>
-            <p>30 a 45 minutos</p>
+            <p>30 a 45 minutos no DF</p>
           </div>
         </div>
         <div class="info-item">
-          <i class="fa-solid fa-shield-halved"></i>
+          <div class="info-icon privacy"><i class="fa-solid fa-shield-halved"></i></div>
           <div>
-            <strong>Guardrails Ativos</strong>
-            <p>Proteção anti-injeção e dados seguros</p>
+            <strong>100% Client-Side</strong>
+            <p>Sem LLM • Dados privados no seu browser</p>
           </div>
         </div>
       </div>
     </aside>
 
-    <!-- Área Principal do Chatbot -->
+    <!-- Área Principal: Chatbot Conversacional -->
     <main class="chat-main">
       <header class="chat-header">
         <div class="chat-header-info">
@@ -80,15 +90,19 @@
             <span class="online-indicator"></span>
           </div>
           <div>
-            <h1>Dona Benta - Assistente Virtual</h1>
-            <p class="subtitle">Especialista em pedidos rápidos, temperos e pontos de carne</p>
+            <div class="bot-title-row">
+              <h1>Candanga - Assistente Virtual</h1>
+              <span class="bot-pill-bsb"><i class="fa-solid fa-location-dot"></i> Brasília</span>
+            </div>
+            <p class="subtitle">Especialista em pedidos rápidos, pontos de carne e temperos caseiros</p>
           </div>
         </div>
         <div class="chat-header-actions">
-          <button class="btn-icon" id="btnToggleSidebar" title="Alternar Cardápio">
+          <button class="btn-icon" id="btnToggleSidebar" title="Alternar Cardápio" aria-label="Abrir cardápio">
             <i class="fa-solid fa-utensils"></i>
+            <span class="btn-icon-tip">Cardápio</span>
           </button>
-          <button class="btn-icon" id="btnClearChat" title="Reiniciar Pedido">
+          <button class="btn-icon" id="btnClearChat" title="Reiniciar Pedido" aria-label="Reiniciar conversa">
             <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
         </div>
@@ -101,16 +115,17 @@
 
       <!-- Atalhos Rápidos (Quick Actions) -->
       <div class="quick-actions-bar" id="quickActionsBar">
-        <button class="quick-pill" data-action="ver_cardapio">📋 Ver Cardápio</button>
-        <button class="quick-pill" data-action="fechar_pedido">🛒 Resumo / Fechar</button>
-        <button class="quick-pill" data-action="ajuda">❓ Como Funciona</button>
-        <button class="quick-pill" data-action="limpar">🔄 Novo Pedido</button>
+        <button class="quick-pill" data-action="ver_cardapio"><i class="fa-solid fa-book-open"></i> Ver Cardápio</button>
+        <button class="quick-pill" data-action="fechar_pedido"><i class="fa-solid fa-bag-shopping"></i> Resumo / Fechar</button>
+        <button class="quick-pill" data-action="ajuda"><i class="fa-regular fa-circle-question"></i> Como Funciona</button>
+        <button class="quick-pill" data-action="limpar"><i class="fa-solid fa-arrows-rotate"></i> Novo Pedido</button>
       </div>
 
       <!-- Barra de Input do Chat -->
       <footer class="chat-input-area">
         <form id="chatForm" class="chat-form">
           <div class="input-wrapper">
+            <i class="fa-regular fa-comment-dots input-lead-icon"></i>
             <input 
               type="text" 
               id="userInput" 
@@ -126,32 +141,41 @@
           </button>
         </form>
         <div class="security-footer-note">
-          <i class="fa-solid fa-shield-cat"></i> Filtros de segurança, limite de 300 caracteres e NLP ativo (100% Client-Side)
+          <i class="fa-solid fa-shield-halved"></i> 
+          <span><strong>Marmitas Brasília</strong> • Processamento 100% Client-Side (Sem LLM / Sem APIs externas) • Limite de 300 caracteres</span>
         </div>
       </footer>
     </main>
 
-    <!-- Resumo do Carrinho Lateral (Gaveta Móvel ou Painel Desktop) -->
+    <!-- Resumo do Pedido & Carrinho -->
     <section class="cart-drawer" id="cartDrawer">
       <div class="cart-header">
-        <h3><i class="fa-solid fa-basket-shopping"></i> Seu Pedido</h3>
+        <div class="cart-title">
+          <i class="fa-solid fa-basket-shopping"></i>
+          <div>
+            <h3>Seu Pedido</h3>
+            <span class="cart-sub">Marmitas Brasília</span>
+          </div>
+        </div>
         <span class="cart-count-badge" id="cartCount">0</span>
       </div>
       <div class="cart-body" id="cartBody">
         <div class="cart-empty" id="cartEmpty">
-          <i class="fa-solid fa-utensils"></i>
-          <p>Nenhuma marmita adicionada ainda.</p>
-          <small>Peça digitando no chat ou clicando nos pratos!</small>
+          <div class="empty-icon-wrap">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <p>Nenhuma marmita adicionada.</p>
+          <small>Peça digitando no chat ou clicando nos pratos do cardápio!</small>
         </div>
         <div class="cart-items-list" id="cartItemsList"></div>
       </div>
       <div class="cart-footer" id="cartFooter">
         <div class="cart-summary-line">
-          <span>Subtotal:</span>
+          <span>Subtotal das marmitas:</span>
           <strong id="cartSubtotal">R$ 0,00</strong>
         </div>
         <div class="cart-summary-line">
-          <span>Taxa de Entrega:</span>
+          <span>Taxa de Entrega (DF):</span>
           <strong id="cartDeliveryFee">R$ 6,00</strong>
         </div>
         <div class="cart-summary-line total-line">
@@ -159,7 +183,7 @@
           <strong id="cartTotal">R$ 6,00</strong>
         </div>
         <button class="btn-checkout" id="btnCheckout" disabled>
-          <i class="fa-brands fa-whatsapp"></i> Finalizar Pedido
+          <i class="fa-brands fa-whatsapp"></i> Finalizar Pedido no WhatsApp
         </button>
       </div>
     </section>

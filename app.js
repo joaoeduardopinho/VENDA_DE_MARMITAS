@@ -1,6 +1,7 @@
 /**
- * MARMITABOT - SISTEMA CLIENT-SIDE DE ATENDIMENTO E VENDAS
- * Arquitetura de Engenharia de Software com Guardrails de Segurança Defensiva e Módulo NLP
+ * MARMITAS BRASÍLIA - SISTEMA DE ATENDIMENTO 100% CLIENT-SIDE
+ * Chatbot Conversacional Determinístico baseado em Engenharia de Software e NLP
+ * SEM LLM / SEM APIs EXTERNAS / PROCESSAMENTO TOTALMENTE NO NAVEGADOR
  */
 
 // ==========================================
@@ -320,7 +321,7 @@ class MarmitaBotEngine {
         return {
           safe: false,
           isAttack: false,
-          reason: '🚫 ESCOPO EXCLUSIVO: Não estou autorizada a gastar tokens com tarefas gerais (redações, código, curiosidades). Meu único e exclusivo propósito é atender pedidos de marmitas da Marmitaria Sabor Real!'
+          reason: '🚫 ESCOPO EXCLUSIVO: Sou a atendente virtual da Marmitas Brasília e meu funcionamento é 100% focado no atendimento e montagem do seu pedido de marmita! Não realizo tarefas externas como redações, códigos ou bate-papo geral.'
         };
       }
     }
@@ -815,7 +816,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtotal = botEngine.calculateSubtotal();
     const total = subtotal + DELIVERY_FEE;
 
-    let msg = `*NOVO PEDIDO - MARMITARIA SABOR REAL*\n\n`;
+    let msg = `*🍱 NOVO PEDIDO - MARMITAS BRASÍLIA*\n`;
+    msg += `_Atendimento Digital via Chatbot Web_\n\n`;
     botEngine.cart.forEach((item, i) => {
       msg += `*${i + 1}. ${item.quantity}x ${item.name}*\n`;
       if (item.cookingPoint) msg += `🥩 Ponto: ${item.cookingPoint}\n`;
@@ -825,31 +827,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     msg += `-----------------------------\n`;
     msg += `🍲 Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
-    msg += `🛵 Taxa Entrega: R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')}\n`;
-    msg += `💰 *TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n`;
+    msg += `🛵 Taxa de Entrega (DF): R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')}\n`;
+    msg += `💰 *TOTAL A PAGAR: R$ ${total.toFixed(2).replace('.', ',')}*\n`;
 
     if (botEngine.sessionState.address) {
-      msg += `📍 *Endereço:* ${botEngine.sessionState.address}\n`;
+      msg += `📍 *Endereço no DF:* ${botEngine.sessionState.address}\n`;
     }
     if (botEngine.sessionState.payment) {
-      msg += `💳 *Pagamento:* ${botEngine.sessionState.payment}\n`;
+      msg += `💳 *Forma de Pagamento:* ${botEngine.sessionState.payment}\n`;
     }
 
-    const whatsappUrl = `https://wa.me/5511999999999?text=${encodeURIComponent(msg)}`;
+    msg += `\n_Pedido gerado 100% no navegador (Client-Side, sem LLM)._`;
+
+    const whatsappUrl = `https://wa.me/5561999999999?text=${encodeURIComponent(msg)}`;
     window.open(whatsappUrl, '_blank');
   });
 
   // Mensagem inicial de boas-vindas
   function initGreeting() {
-    const greeting = `👋 Olá! Seja muito bem-vindo(a) à **Marmitaria Sabor Real**!
-Eu sou a **Dona Benta**, sua assistente virtual de marmitas.
+    const greeting = `👋 Olá! Seja muito bem-vindo(a) à **Marmitas Brasília**!
+Eu sou a **Candanga**, sua assistente virtual de atendimento inteligente aqui no DF.
 
-🍛 Você pode escolher qualquer item do cardápio e personalizar como preferir:
-• Ajustar temperos (ex: *sem cebola*, *pouco sal*, *sem salada*)
-• Escolher o ponto da carne (*ao ponto*, *bem passada*, *mal passada*)
-• Definir a quantidade desejada
+⚡ **Chatbot 100% Client-Side:** Todo o processamento funciona diretamente no seu navegador usando algoritmos de NLP e Máquina de Estados, **sem depender de LLM ou servidores externos**!
 
-Diga o que gostaria de pedir ou clique em **"📋 Ver Cardápio"** para ver as delícias de hoje!`;
+🍛 **Como posso montar seu pedido hoje?**
+• Escolha qualquer marmita do cardápio pelo nome
+• Ajuste temperos à vontade (ex: *sem cebola*, *pouco sal*, *sem salada*, *molho à parte*)
+• Defina o ponto da sua carne (*ao ponto*, *bem passada*, *mal passada*)
+• Informe a quantidade (*"quero 2 marmitas..."*)
+
+Diga o que você quer saborear ou clique em **"📋 Ver Cardápio"** para ver as opções do dia!`;
 
     appendMessage('bot', greeting);
   }
