@@ -133,18 +133,38 @@ class NLPProcessor {
       entities.cookingPoint = 'Ao ponto';
     }
 
-    // 3. Modificações de Ingredientes e Temperos
+    // 3. Modificações de Ingredientes, Acompanhamentos e Temperos
     const ingredientPatterns = [
-      { regex: /(?:sem|tira|retira)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
-      { regex: /(?:pouco|menos|baixo|sem)\s+(sal)/i, tag: 'Pouco sal' },
-      { regex: /(?:sem|tira|retira)\s+(alho)/i, tag: 'Sem alho' },
-      { regex: /(?:sem|tira|retira)\s+(feijao|feijoes)/i, tag: 'Sem feijão' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(arroz)/i, tag: 'Sem arroz' },
       { regex: /(?:com\s+arroz\s+integral|arroz\s+integral)/i, tag: 'Arroz integral' },
-      { regex: /(?:sem|tira|retira)\s+(salada|alface|tomate)/i, tag: 'Sem salada' },
+      { regex: /(?:com\s+arroz\s+branco|arroz\s+branco)/i, tag: 'Arroz branco' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
+      { regex: /(?:pouco|menos|baixo|sem)\s+(sal)/i, tag: 'Pouco sal' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(alho)/i, tag: 'Sem alho' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(feijao|feijoes)/i, tag: 'Sem feijão' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(salada|alface|tomate)/i, tag: 'Sem salada' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(farofa)/i, tag: 'Sem farofa' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(molho)/i, tag: 'Sem molho' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(vinagrete)/i, tag: 'Sem vinagrete' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(frita|fritas|batata|batatas)/i, tag: 'Sem fritas' },
       { regex: /(?:molho\s+[aà]\s*parte|separado)/i, tag: 'Molho à parte' },
       { regex: /(?:bastante|com|mais)\s+(pimenta)/i, tag: 'Com pimenta da casa' },
-      { regex: /(?:com\s+bastante\s+cebola|capricha\s+na\s+cebola)/i, tag: 'Com cebola extra' }
+      { regex: /(?:com\s+bastante\s+cebola|capricha\s+na\s+cebola)/i, tag: 'Com cebola extra' },
+      { regex: /(?:bastante|com\s+bastante|mais)\s+(alho)/i, tag: 'Com alho extra' }
     ];
+
+    // Captura genérica de "sem <item>" ou "tira <item>"
+    const genericSemMatch = norm.match(/(?:sem|tira|retira|zero|nao\s+quero)\s+([a-zA-ZÀ-ÿ]{3,20})/g);
+    if (genericSemMatch) {
+      genericSemMatch.forEach(phrase => {
+        const word = phrase.replace(/(?:sem|tira|retira|zero|nao\s+quero)\s+/i, '').trim();
+        // Se já não foi capturado pelos padrões específicos
+        const alreadyCaptured = ingredientPatterns.some(p => p.regex.test(phrase));
+        if (!alreadyCaptured && word && !['uma', 'dois', 'duas', 'marmita', 'marmitas', 'favor', 'por'].includes(word)) {
+          entities.modifiers.push(`Sem ${word.charAt(0).toUpperCase() + word.slice(1)}`);
+        }
+      });
+    }
 
     ingredientPatterns.forEach(pattern => {
       if (pattern.regex.test(norm)) {
@@ -374,6 +394,23 @@ class MarmitaBotEngine {
       return this.handleCheckoutSummary();
     }
 
+    // Se o usuário digitou apenas modificação/ajuste (ex: "sem arroz", "pouco sal") e já tem itens na comanda
+    if (entities.modifiers.length > 0 && this.cart.length > 0 && !this.findMatchingItemNLP(rawText)) {
+      const lastItem = this.cart[this.cart.length - 1];
+      const newMods = entities.modifiers.join(', ');
+      
+      if (lastItem.notes === 'Tempero padrão artesanal' || lastItem.notes === 'Tempero padrão da casa') {
+        lastItem.notes = newMods;
+      } else {
+        lastItem.notes += `, ${newMods}`;
+      }
+
+      return {
+        reply: `✍️ Atualizei a sua marmita de **${lastItem.name}**!\n- Novo ajuste anotado: **${lastItem.notes}**\n\nPrecisa de mais alguma alteração ou deseja **fechar o pedido**?`,
+        cartUpdated: true
+      };
+    }
+
     // Reconhecimento de prato por NLP
     const matchedItem = this.findMatchingItemNLP(rawText);
     if (matchedItem) {
@@ -390,6 +427,59 @@ class MarmitaBotEngine {
     const tokens = NLPProcessor.tokenize(norm).map(t => NLPProcessor.stem(t));
     const currentMenu = MENU_DATA[this.currentDayKey] || MENU_DATA['segunda'];
 
+    // 1. Prioridade Máxima: se o usuário especificou 'bife', priorizar o prato que tem bife no nome ou id
+    if (norm.includes('bife') || norm.includes('contrafile') || norm.includes('alcatra') || norm.includes('picanha')) {
+      const bifeItem = currentMenu.find(item => 
+        item.name.toLowerCase().includes('bife') || 
+        item.name.toLowerCase().includes('contrafilé') ||
+        item.name.toLowerCase().includes('picanha') ||
+        item.id.includes('bife')
+      );
+      if (bifeItem) return bifeItem;
+    }
+
+    // 2. Se especificou frango/strogonoff
+    if (norm.includes('frango') || norm.includes('sobrecoxa') || norm.includes('parmegiana')) {
+      const frangoItem = currentMenu.find(item => 
+        item.name.toLowerCase().includes('frango') || 
+        item.name.toLowerCase().includes('sobrecoxa') ||
+        item.id.includes('frango')
+      );
+      if (frangoItem) return frangoItem;
+    }
+
+    // 3. Se especificou peixe/tilápia
+    if (norm.includes('peixe') || norm.includes('tilapia')) {
+      const peixeItem = currentMenu.find(item => 
+        item.name.toLowerCase().includes('tilápia') || 
+        item.name.toLowerCase().includes('peixe') ||
+        item.id.includes('peixe')
+      );
+      if (peixeItem) return peixeItem;
+    }
+
+    // 4. Se especificou feijoada/virado/suino
+    if (norm.includes('feijoada') || norm.includes('virado') || norm.includes('bisteca')) {
+      const suinoItem = currentMenu.find(item => 
+        item.name.toLowerCase().includes('feijoada') || 
+        item.name.toLowerCase().includes('virado') ||
+        item.id.includes('feijoada') ||
+        item.id.includes('virado')
+      );
+      if (suinoItem) return suinoItem;
+    }
+
+    // 5. Se especificou massa/lasanha/panqueca/nhoque
+    if (norm.includes('lasanha') || norm.includes('panqueca') || norm.includes('nhoque') || norm.includes('massa')) {
+      const massaItem = currentMenu.find(item => 
+        item.name.toLowerCase().includes('lasanha') || 
+        item.name.toLowerCase().includes('panqueca') ||
+        item.name.toLowerCase().includes('nhoque')
+      );
+      if (massaItem) return massaItem;
+    }
+
+    // 6. Busca por nome ou ID exato no cardápio de hoje
     for (const item of currentMenu) {
       const itemNorm = NLPProcessor.normalize(item.name);
       if (norm.includes(itemNorm) || norm.includes(NLPProcessor.normalize(item.id))) {
@@ -404,17 +494,24 @@ class MarmitaBotEngine {
           }
         }
       }
+    }
 
-      if (item.meatType === 'bovino' && (norm.includes('bife') || norm.includes('vaca') || norm.includes('carne') || norm.includes('alcatra') || norm.includes('contrafile') || norm.includes('picanha'))) {
+    // 7. Busca geral nos outros dias se mencionado
+    for (const day in MENU_DATA) {
+      for (const item of MENU_DATA[day]) {
+        const itemNorm = NLPProcessor.normalize(item.name);
+        if (norm.includes(itemNorm)) {
+          return item;
+        }
+      }
+    }
+
+    // 8. Fallback por categoria ampla apenas se não for termo genérico conflitante
+    for (const item of currentMenu) {
+      if (item.meatType === 'bovino' && (norm.includes('carne') || norm.includes('vaca'))) {
         return item;
       }
-      if (item.meatType === 'suino' && (norm.includes('feijoada') || norm.includes('virado') || norm.includes('bisteca') || norm.includes('porco'))) {
-        return item;
-      }
-      if (item.meatType === 'frango' && (norm.includes('frango') || norm.includes('strogonoff') || norm.includes('parmegiana') || norm.includes('sobrecoxa'))) {
-        return item;
-      }
-      if (item.meatType === 'peixe' && (norm.includes('peixe') || norm.includes('tilapia') || norm.includes('pescado'))) {
+      if (item.meatType === 'suino' && norm.includes('porco')) {
         return item;
       }
     }
