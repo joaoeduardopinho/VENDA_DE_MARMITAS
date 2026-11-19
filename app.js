@@ -133,24 +133,68 @@ class NLPProcessor {
       entities.cookingPoint = 'Ao ponto';
     }
 
-    // 3. Modificações de Ingredientes, Acompanhamentos e Temperos
+    // 3. Modificações de Ingredientes, Acompanhamentos, Porções e Temperos (Amplo Vocabulário)
     const ingredientPatterns = [
+      // Arroz e variações
       { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(arroz)/i, tag: 'Sem arroz' },
       { regex: /(?:com\s+arroz\s+integral|arroz\s+integral)/i, tag: 'Arroz integral' },
       { regex: /(?:com\s+arroz\s+branco|arroz\s+branco)/i, tag: 'Arroz branco' },
-      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
-      { regex: /(?:pouco|menos|baixo|sem)\s+(sal)/i, tag: 'Pouco sal' },
-      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(alho)/i, tag: 'Sem alho' },
+      { regex: /(?:pouco|menos|metade\s+do)\s+(arroz)/i, tag: 'Pouco arroz' },
+      { regex: /(?:bastante|capricha\s+no|mais)\s+(arroz)/i, tag: 'Arroz caprichado' },
+
+      // Feijão e caldos
       { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(feijao|feijoes)/i, tag: 'Sem feijão' },
-      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(salada|alface|tomate)/i, tag: 'Sem salada' },
+      { regex: /(?:so\s+o\s+caldo|apenas\s+caldo|caldo\s+do\s+feijao)/i, tag: 'Só o caldo do feijão' },
+      { regex: /(?:sem\s+caldo|feijao\s+seco)/i, tag: 'Feijão sem caldo' },
+      { regex: /(?:feijao\s+preto)/i, tag: 'Com feijão preto' },
+      { regex: /(?:feijao\s+carioca)/i, tag: 'Com feijão carioca' },
+      { regex: /(?:feijao\s+[aà]\s*parte|separado)/i, tag: 'Feijão à parte' },
+
+      // Salada e Legumes
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(salada|saladas)/i, tag: 'Sem salada' },
+      { regex: /(?:salada\s+[aà]\s*parte|salada\s+separada)/i, tag: 'Salada à parte' },
+      { regex: /(?:sem|tira|retira)\s+(tomate|tomates)/i, tag: 'Sem tomate' },
+      { regex: /(?:sem|tira|retira)\s+(alface)/i, tag: 'Sem alface' },
+      { regex: /(?:sem|tira|retira)\s+(pepino)/i, tag: 'Sem pepino' },
+      { regex: /(?:sem|tira|retira)\s+(legume|legumes)/i, tag: 'Sem legumes' },
+      { regex: /(?:bastante|mais|dupla)\s+(salada)/i, tag: 'Salada extra' },
+
+      // Cebola e Alho
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
+      { regex: /(?:bastante\s+cebola|muita\s+cebola|capricha\s+na\s+cebola|bem\s+acebolado)/i, tag: 'Cebola extra' },
+      { regex: /(?:pouca\s+cebola|menos\s+cebola)/i, tag: 'Pouca cebola' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(alho)/i, tag: 'Sem alho' },
+      { regex: /(?:bastante\s+alho|capricha\s+no\s+alho)/i, tag: 'Alho extra' },
+
+      // Sal e Pimenta
+      { regex: /(?:pouco|menos|baixo|sem)\s+(sal)/i, tag: 'Pouco sal' },
+      { regex: /(?:sem|zero)\s+(sal)/i, tag: 'Sem sal' },
+      { regex: /(?:sem|tira|retira|nao\s+quero)\s+(pimenta)/i, tag: 'Sem pimenta' },
+      { regex: /(?:bastante|com|mais|capricha\s+na)\s+(pimenta)/i, tag: 'Com pimenta da casa' },
+
+      // Farofa, Batatas e Frituras
       { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(farofa)/i, tag: 'Sem farofa' },
-      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(molho)/i, tag: 'Sem molho' },
-      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(vinagrete)/i, tag: 'Sem vinagrete' },
-      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(frita|fritas|batata|batatas)/i, tag: 'Sem fritas' },
-      { regex: /(?:molho\s+[aà]\s*parte|separado)/i, tag: 'Molho à parte' },
-      { regex: /(?:bastante|com|mais)\s+(pimenta)/i, tag: 'Com pimenta da casa' },
-      { regex: /(?:com\s+bastante\s+cebola|capricha\s+na\s+cebola)/i, tag: 'Com cebola extra' },
-      { regex: /(?:bastante|com\s+bastante|mais)\s+(alho)/i, tag: 'Com alho extra' }
+      { regex: /(?:bastante|mais|capricha\s+na)\s+(farofa)/i, tag: 'Farofa extra' },
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(frita|fritas|batata|batatas|batata\s+frita)/i, tag: 'Sem batata frita' },
+      { regex: /(?:trocar\s+fritas\s+por\s+pure|pure\s+no\s+lugar|com\s+pure)/i, tag: 'Com purê no lugar das fritas' },
+      { regex: /(?:sem|tira|retira)\s+(pure|pure\s+de\s+batata)/i, tag: 'Sem purê' },
+      { regex: /(?:sem|tira|retira)\s+(batata\s+palha)/i, tag: 'Sem batata palha' },
+      { regex: /(?:batata\s+palha\s+[aà]\s*parte|separada)/i, tag: 'Batata palha à parte' },
+
+      // Molhos, Temperos e Outros
+      { regex: /(?:sem|tira|retira|nao\s+quero|zero)\s+(molho|molhos)/i, tag: 'Sem molho' },
+      { regex: /(?:molho\s+[aà]\s*parte|molho\s+separado)/i, tag: 'Molho à parte' },
+      { regex: /(?:bastante\s+molho|capricha\s+no\s+molho)/i, tag: 'Molho extra' },
+      { regex: /(?:sem|tira|retira)\s+(vinagrete)/i, tag: 'Sem vinagrete' },
+      { regex: /(?:vinagrete\s+[aà]\s*parte|separado)/i, tag: 'Vinagrete à parte' },
+      { regex: /(?:sem|tira|retira)\s+(cheiro\s*verde|coentro|salsinha|cebolinha)/i, tag: 'Sem cheiro-verde/coentro' },
+      { regex: /(?:sem|tira|retira)\s+(queijo|muçarela|mussarela)/i, tag: 'Sem queijo' },
+      { regex: /(?:sem|tira|retira)\s+(couve)/i, tag: 'Sem couve' },
+      { regex: /(?:sem|tira|retira)\s+(ovo|ovo\s+frito)/i, tag: 'Sem ovo' },
+      { regex: /(?:gema\s+mole|ovo\s+com\s+gema\s+mole)/i, tag: 'Ovo com gema mole' },
+      { regex: /(?:gema\s+dura|ovo\s+bem\s+passado)/i, tag: 'Ovo com gema dura' },
+      { regex: /(?:sem|tira|retira)\s+(torresmo|pururuca)/i, tag: 'Sem torresmo' },
+      { regex: /(?:sem|tira|retira)\s+(champignon|cogumelo)/i, tag: 'Sem champignon' }
     ];
 
     // Captura genérica de "sem <item>" ou "tira <item>"
