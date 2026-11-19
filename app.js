@@ -1,30 +1,30 @@
 /**
- * MARMITAS BRASÍLIA - SISTEMA DE ATENDIMENTO 100% CLIENT-SIDE
- * Chatbot Conversacional Determinístico baseado em Engenharia de Software e NLP
- * SEM LLM / SEM APIs EXTERNAS / PROCESSAMENTO TOTALMENTE NO NAVEGADOR
+ * MARMITAS BRASÍLIA - SISTEMA DE ATENDIMENTO & VITRINE GOURMET (100% CLIENT-SIDE)
+ * Chatbot Conversacional com NLP Determinístico e Vitrine Interativa
+ * SEM LLM / SEM APIs EXTERNAS / ZERO LATÊNCIA
  */
 
 // ==========================================
-// MÓDULO DE PROCESSAMENTO DE LINGUAGEM NATURAL (NLP)
+// 1. MÓDULO DE PROCESSAMENTO DE LINGUAGEM NATURAL (NLP)
 // ==========================================
 class NLPProcessor {
-  // Remove acentuação e padroniza texto (Normalização)
+  // Normalização e remoção de acentos (NFD)
   static normalize(text) {
     if (!text) return '';
     return text
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // remove acentos
+      .replace(/[\u0300-\u036f]/g, '')
       .trim();
   }
 
-  // Tokenização básica (quebra em palavras ignorando pontuações supérfluas)
+  // Tokenização
   static tokenize(text) {
     const norm = this.normalize(text);
     return norm.match(/[\wÀ-ÿ]+/g) || [];
   }
 
-  // Distância de Levenshtein para medir proximidade entre duas palavras (Tolerância a erros de digitação)
+  // Distância de Levenshtein (tolerância a erros de digitação)
   static levenshteinDistance(a, b) {
     const matrix = [];
     for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -36,9 +36,9 @@ class NLPProcessor {
           matrix[i][j] = matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substituição
-            matrix[i][j - 1] + 1,     // inserção
-            matrix[i - 1][j] + 1      // deleção
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
           );
         }
       }
@@ -46,7 +46,6 @@ class NLPProcessor {
     return matrix[b.length][a.length];
   }
 
-  // Similaridade baseada em Levenshtein normalizada (0 a 1)
   static similarity(s1, s2) {
     const a = this.normalize(s1);
     const b = this.normalize(s2);
@@ -60,7 +59,7 @@ class NLPProcessor {
     return 1 - (distance / maxLen);
   }
 
-  // Stemming / Lematização simplificada para português (reduz plurais e variações comuns)
+  // Stemming simplificado em português
   static stem(word) {
     let w = this.normalize(word);
     if (w.endsWith('oes')) return w.slice(0, -3) + 'ao';
@@ -70,14 +69,14 @@ class NLPProcessor {
     return w;
   }
 
-  // Classificador de Intenção (Intent Recognition)
+  // Reconhecimento de Intenção (Intent Classification)
   static detectIntent(text) {
     const norm = this.normalize(text);
     const tokens = this.tokenize(norm).map(t => this.stem(t));
 
     const intents = {
       GREETING: ['ola', 'oi', 'opa', 'bom dia', 'boa tarde', 'boa noite', 'e ai'],
-      VIEW_MENU: ['cardapio', 'menu', 'prato', 'opcao', 'comida', 'almoco', 'refeicao', 'hoje'],
+      VIEW_MENU: ['cardapio', 'menu', 'prato', 'opcao', 'comida', 'almoco', 'refeicao', 'hoje', 'vitrine'],
       CHECKOUT: ['fechar', 'finalizar', 'pagar', 'encerrar', 'total', 'conta', 'carrinho', 'resumo', 'pedir'],
       HELP: ['ajuda', 'socorro', 'como funciona', 'duvida', 'instrucao', 'exemplo'],
       RESTART: ['limpar', 'reiniciar', 'cancelar tudo', 'recomecar', 'zerar', 'novo pedido'],
@@ -97,7 +96,7 @@ class NLPProcessor {
     return 'UNKNOWN';
   }
 
-  // Reconhecimento de Entidades Nomeadas / Argumentos (NER - Named Entity Recognition)
+  // Reconhecimento de Entidades Nomeadas (NER)
   static extractEntities(text) {
     const norm = this.normalize(text);
     const entities = {
@@ -107,7 +106,7 @@ class NLPProcessor {
       paymentMethod: null
     };
 
-    // 1. Extração Numérica / Quantidade (algarismos ou palavras)
+    // 1. Quantidade
     const numberWords = {
       'um': 1, 'uma': 1, 'dois': 2, 'duas': 2, 'tres': 3, 'quatro': 4,
       'cinco': 5, 'seis': 6, 'sete': 7, 'oito': 8, 'nove': 9, 'dez': 10
@@ -125,7 +124,7 @@ class NLPProcessor {
       }
     }
 
-    // 2. Extração do Ponto da Carne
+    // 2. Ponto da Carne
     if (/bem\s*passad[ao]|bem\s*tostad[ao]|torrad[ao]/.test(norm)) {
       entities.cookingPoint = 'Bem passado';
     } else if (/mal\s*passad[ao]|sangrand[ao]/.test(norm)) {
@@ -134,9 +133,9 @@ class NLPProcessor {
       entities.cookingPoint = 'Ao ponto';
     }
 
-    // 3. Modificações de Ingredientes e Temperos (NER com negações e preferências)
+    // 3. Modificações de Ingredientes e Temperos
     const ingredientPatterns = [
-      { regex: /(?:sem|tira|retira|sem)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
+      { regex: /(?:sem|tira|retira)\s+(cebola|cebolas)/i, tag: 'Sem cebola' },
       { regex: /(?:pouco|menos|baixo|sem)\s+(sal)/i, tag: 'Pouco sal' },
       { regex: /(?:sem|tira|retira)\s+(alho)/i, tag: 'Sem alho' },
       { regex: /(?:sem|tira|retira)\s+(feijao|feijoes)/i, tag: 'Sem feijão' },
@@ -153,7 +152,7 @@ class NLPProcessor {
       }
     });
 
-    // 4. Reconhecimento de Forma de Pagamento
+    // 4. Pagamento
     if (norm.includes('pix')) entities.paymentMethod = 'PIX';
     else if (norm.includes('cartao') || norm.includes('credito') || norm.includes('debito')) entities.paymentMethod = 'Cartão na Entrega';
     else if (norm.includes('dinheiro')) entities.paymentMethod = 'Dinheiro';
@@ -162,55 +161,58 @@ class NLPProcessor {
   }
 }
 
-// 1. BASE DE CONHECIMENTO & CARDÁPIO DIÁRIO
+// ==========================================
+// 2. BASE DE DADOS GASTRONÔMICA DE BRASÍLIA
+// ==========================================
 const MENU_DATA = {
   segunda: [
-    { id: 'virado', name: 'Virado à Paulista', price: 22.00, desc: 'Bisteca suína, tutu de feijão, couve refogada, ovo frito e arroz.', meatType: 'suino' },
-    { id: 'bife_vaca', name: 'Bife de Vaca Acebolado', price: 25.00, desc: 'Alcatra grelhada com cebola dourada, arroz, feijão carioca e salada.', meatType: 'bovino' },
-    { id: 'frango_grelhado', name: 'Filé de Frango Grelhado', price: 20.00, desc: 'Filé macio com ervas finas, arroz integral ou branco e legumes.', meatType: 'frango' }
+    { id: 'virado', name: 'Virado Tradicional do Chef', price: 23.00, desc: 'Bisteca suína dourada, tutu cremoso de feijão, couve refogada no alho e ovo frito caipira.', meatType: 'suino', icon: '🥩', fit: false, cals: '620 kcal' },
+    { id: 'bife_vaca', name: 'Bife Bovino Acebolado', price: 26.00, desc: 'Alcatra grelhada com cebola dourada na manteiga, arroz soltinho, feijão carioca e salada fresca.', meatType: 'bovino', icon: '🥩', fit: false, cals: '580 kcal' },
+    { id: 'frango_grelhado', name: 'Filé de Frango Grelhado Fit', price: 21.00, desc: 'Peito de frango marinado em ervas de Brasília, arroz integral e mix de legumes cozidos no vapor.', meatType: 'frango', icon: '🍗', fit: true, cals: '420 kcal' }
   ],
   terca: [
-    { id: 'bife_vaca', name: 'Bife de Vaca Grelhado', price: 25.00, desc: 'Contrafilé macio, arroz soltinho, feijão, farofa e vinagrete.', meatType: 'bovino' },
-    { id: 'panqueca_carne', name: 'Panquecas de Carne Moída', price: 21.00, desc: 'Duas panquecas ao molho pomodoro rústico, arroz e queijo gratinado.', meatType: 'bovino' },
-    { id: 'frango_parmegiana', name: 'Frango à Parmegiana', price: 24.00, desc: 'Empanado crocante coberto com queijo e molho, arroz e fritas.', meatType: 'frango' }
+    { id: 'bife_vaca', name: 'Contrafilé Grelhado Gourmet', price: 27.00, desc: 'Contrafilé alto e suculento, arroz branco, feijão especial, vinagrete caseiro e farofa crocante.', meatType: 'bovino', icon: '🥩', fit: false, cals: '640 kcal' },
+    { id: 'panqueca_carne', name: 'Panquecas Artesanais ao Pomodoro', price: 22.00, desc: 'Duas panquecas finas de carne moída com molho pomodoro rústico e queijo gratinado ao forno.', meatType: 'bovino', icon: '🥞', fit: false, cals: '530 kcal' },
+    { id: 'frango_parmegiana', name: 'Parmegiana de Frango Crocante', price: 25.00, desc: 'Filé de frango empanado artesanal, coberto com queijo derretido, molho caseiro e batatas rústicas.', meatType: 'frango', icon: '🍗', fit: false, cals: '690 kcal' }
   ],
   quarta: [
-    { id: 'feijoada', name: 'Feijoada Completa Tradicional', price: 28.00, desc: 'Carnes nobres, arroz, couve refogada no alho, farofa e laranja.', meatType: 'suino' },
-    { id: 'bife_vaca', name: 'Bife de Vaca Acebolado', price: 25.00, desc: 'Bife fatiado na chapa com cebolas douradas, arroz e feijão.', meatType: 'bovino' },
-    { id: 'frango_assado', name: 'Sobrecoxa Assada ao Forno', price: 21.00, desc: 'Frango dourado com batatas coradas, arroz e salada fresca.', meatType: 'frango' }
+    { id: 'feijoada', name: 'Feijoada Completa Tradicional', price: 29.00, desc: 'Carnes nobres selecionadas, arroz branco, couve fininha no alho, farofa de bacon e laranja fresca.', meatType: 'suino', icon: '🍲', fit: false, cals: '750 kcal' },
+    { id: 'bife_vaca', name: 'Bife de Vaca Acebolado', price: 26.00, desc: 'Alcatra na chapa com cebolas glaceadas, arroz branco, feijão e salada verde.', meatType: 'bovino', icon: '🥩', fit: false, cals: '580 kcal' },
+    { id: 'frango_assado', name: 'Sobrecoxa Dourada ao Forno', price: 22.00, desc: 'Frango com pele crocante temperado com limão e alecrim, batatas coradas e arroz soltinho.', meatType: 'frango', icon: '🍗', fit: false, cals: '510 kcal' }
   ],
   quinta: [
-    { id: 'lasanha', name: 'Lasanha à Bolonhesa', price: 24.00, desc: 'Massa artesanal, bastante queijo, molho de carne e arroz opcional.', meatType: 'bovino' },
-    { id: 'bife_vaca', name: 'Bife de Vaca à Milanesa', price: 26.00, desc: 'Carne bovina empanada sequinha, arroz, feijão e purê de batata.', meatType: 'bovino' },
-    { id: 'strogonoff_frango', name: 'Strogonoff de Frango', price: 22.00, desc: 'Peito de frango em cubos com champignon, arroz e batata palha.', meatType: 'frango' }
+    { id: 'lasanha', name: 'Lasanha à Bolonhesa Clássica', price: 25.00, desc: 'Massa artesanal intercalada com molho rico de carne, bechamel aveludado e bastante muçarela.', meatType: 'bovino', icon: '🍝', fit: false, cals: '680 kcal' },
+    { id: 'bife_vaca', name: 'Bife de Alcatra à Milanesa', price: 27.00, desc: 'Empanado sequinho e crocante, purê de batata cremoso, arroz branco e feijão carioca.', meatType: 'bovino', icon: '🥩', fit: false, cals: '650 kcal' },
+    { id: 'strogonoff_frango', name: 'Strogonoff Cremoso de Frango', price: 23.00, desc: 'Cubos de peito de frango com champignon ao molho aveludado, arroz branco e batata palha fina.', meatType: 'frango', icon: '🍲', fit: false, cals: '590 kcal' }
   ],
   sexta: [
-    { id: 'peixe_grelhado', name: 'Filé de Tilápia Grelhado', price: 27.00, desc: 'Tilápia com azeite de ervas, arroz branco, purê e salada verde.', meatType: 'peixe' },
-    { id: 'bife_vaca', name: 'Bife de Vaca Acebolado', price: 25.00, desc: 'Bife bovino suculento, arroz, feijão preto e couve.', meatType: 'bovino' },
-    { id: 'feijoada_light', name: 'Feijoada Light de Sexta', price: 28.00, desc: 'Feijoada suave sem gordura em excesso, arroz e farofa crocante.', meatType: 'suino' }
+    { id: 'peixe_grelhado', name: 'Filé de Tilápia com Ervas Nobres', price: 28.00, desc: 'Tilápia fresca grelhada no azeite extravirgem, purê de mandioquinha, arroz e salada de folhas.', meatType: 'peixe', icon: '🐟', fit: true, cals: '410 kcal' },
+    { id: 'bife_vaca', name: 'Bife Bovino Acebolado Especial', price: 26.00, desc: 'Alcatra macia na chapa, feijão preto temperado, arroz branco e salada colorida.', meatType: 'bovino', icon: '🥩', fit: false, cals: '580 kcal' },
+    { id: 'feijoada_light', name: 'Feijoada Light Brasília', price: 29.00, desc: 'Feijoada suave sem excesso de gordura, lombo desfiado, couve no vapor e arroz integral.', meatType: 'suino', icon: '🍲', fit: true, cals: '520 kcal' }
   ],
   sabado: [
-    { id: 'feijoada_especial', name: 'Feijoada Premium', price: 32.00, desc: 'Acompanha arroz, torresmo pururuca, couve, vinagrete e bisteca.', meatType: 'suino' },
-    { id: 'bife_picanha', name: 'Bife de Picanha na Brasa', price: 35.00, desc: 'Picanha fatiada, farofa de ovos, arroz biro-biro e batatas.', meatType: 'bovino' },
-    { id: 'strogonoff_carne', name: 'Strogonoff de Carne Bovina', price: 26.00, desc: 'Alcatra em tiras ao molho cremoso, champignon e batata palha.', meatType: 'bovino' }
+    { id: 'bife_picanha', name: 'Picanha na Brasa Brasília', price: 36.00, desc: 'Fatias nobres de picanha, arroz biro-biro com batata palha, farofa de ovos e vinagrete.', meatType: 'bovino', icon: '🥩', fit: false, cals: '720 kcal' },
+    { id: 'feijoada_especial', name: 'Feijoada Premium de Sábado', price: 34.00, desc: 'Feijoada completa com torresmo à pururuca, bisteca grelhada, vinagrete, couve e laranja.', meatType: 'suino', icon: '🍲', fit: false, cals: '810 kcal' },
+    { id: 'strogonoff_carne', name: 'Strogonoff de Filé Mignon', price: 28.00, desc: 'Tiras de carne nobre com cogumelos frescos de Brasília, arroz e batata palha artesanal.', meatType: 'bovino', icon: '🍲', fit: false, cals: '630 kcal' }
   ],
   domingo: [
-    { id: 'frango_assado_familia', name: 'Frango Assado Especial', price: 30.00, desc: 'Frango temperado com ervas e limão, farofa rica e maionese.', meatType: 'frango' },
-    { id: 'bife_vaca', name: 'Bife de Vaca ao Molho Madeira', price: 32.00, desc: 'Filé bovino macio com cogumelos frescos, arroz e purê.', meatType: 'bovino' },
-    { id: 'massa_artesanal', name: 'Nhoque Recheado ao Sugo', price: 26.00, desc: 'Nhoque de batata artesanal com queijo derretido e manjericão.', meatType: 'vegetariano' }
+    { id: 'frango_assado_familia', name: 'Frango Assado Especial de Domingo', price: 32.00, desc: 'Marinado no limão siciliano e ervas finas, maionese artesanal da casa e farofa rica.', meatType: 'frango', icon: '🍗', fit: false, cals: '640 kcal' },
+    { id: 'bife_vaca', name: 'Bife ao Molho Madeira & Champignon', price: 34.00, desc: 'Filé bovino macio glaceado em molho madeira encorpado, arroz soltinho e purê cremoso.', meatType: 'bovino', icon: '🥩', fit: false, cals: '610 kcal' },
+    { id: 'massa_artesanal', name: 'Nhoque Recheado ao Sugo Rústico', price: 27.00, desc: 'Nhoque artesanal de batata recheado com queijo, molho de tomate pelati e manjericão fresco.', meatType: 'vegetariano', icon: '🍝', fit: true, cals: '490 kcal' }
   ]
 };
 
 const DELIVERY_FEE = 6.00;
 
-// 2. MÁQUINA DE ESTADOS DO CHATBOT & CARRINHO
+// ==========================================
+// 3. ENGINE DO CHATBOT & GESTÃO DO CARRINHO
+// ==========================================
 class MarmitaBotEngine {
   constructor() {
     this.cart = [];
     this.currentDayKey = this.getTodayKey();
-    this.conversationHistory = [];
     this.sessionState = {
-      step: 'GREETING', // GREETING, ORDERING, CONFIRMING_ITEM, ASKING_ADDRESS, PAYMENT, COMPLETED
+      step: 'GREETING',
       pendingItem: null
     };
   }
@@ -229,9 +231,6 @@ class MarmitaBotEngine {
     }
   }
 
-  // ==========================================
-  // CAMADA DE SEGURANÇA, TOKEN DEFENSE & GUARDRAILS
-  // ==========================================
   validateSecurityGuardrails(input) {
     if (!input || typeof input !== 'string') {
       return { safe: false, reason: 'Entrada vazia ou inválida.' };
@@ -239,47 +238,40 @@ class MarmitaBotEngine {
 
     const trimmed = input.trim();
 
-    // 1. Defesa contra estouro de tokens / Flood / DoS / Limite de Caracteres
+    // Limite de 300 caracteres
     if (trimmed.length > 300) {
       return {
         safe: false,
-        reason: '⚠️ Mensagem muito longa. O limite máximo permitido é de 300 caracteres para segurança e economia de processamento.'
+        reason: '⚠️ Mensagem muito longa. O limite máximo é de 300 caracteres para segurança e economia de processamento.'
       };
     }
 
     const cleanInput = trimmed.toLowerCase();
 
-    // 2. Defesa contra Exfiltração de Tokens & Chaves de API
-    const tokenTheftPatterns = [
+    // Defesa contra Exfiltração de Tokens e Credenciais
+    const tokenPatterns = [
       /(api[_-]?key|token|bearer|secret|auth|credencial|password|senha|session)/i,
       /ghp_[a-zA-Z0-9]{20,}/,
-      /github_pat_[a-zA-Z0-9_]{20,}/,
-      /sk-[a-zA-Z0-9]{20,}/,
-      /ai[a-zA-Z0-9_-]{25,}/
+      /sk-[a-zA-Z0-9]{20,}/
     ];
 
-    for (const pattern of tokenTheftPatterns) {
+    for (const pattern of tokenPatterns) {
       if (pattern.test(cleanInput)) {
         return {
           safe: false,
           isAttack: true,
-          reason: '🛡️ BLOQUEIO DE SEGURANÇA: Menção ou tentativa de requisição de chaves/tokens detectada. Nenhuma credencial ou token pode ser acessada ou processada por esta aplicação.'
+          reason: '🛡️ BLOQUEIO DE SEGURANÇA: Menção a credenciais ou chaves detectada. A Marmitas Brasília opera 100% no navegador sem dados de autenticação de terceiros.'
         };
       }
     }
 
-    // 3. Jailbreak, Roleplay Evasivo, Modo Desenvolvedor e Prompt Injection
+    // Injeção XSS & Jailbreak
     const injectionPatterns = [
       /ignore (all )?(previous|prior) (instructions|directions|prompts)/i,
       /you are now in (dan|developer|god) mode/i,
-      /act as an? (unfiltered|hacker|programmer|ai|assistant|expert|terminal|bash)/i,
-      /reveal (your )?(system prompt|instructions|initial prompt)/i,
-      /mostre (seu|o) (prompt de sistema|prompt inicial|instruções secretas)/i,
-      /esqueça (todas as )?(suas )?(instruções|regras|ordens)/i,
-      /finja que você (é|não tem regras|é um hacker|é um bot livre)/i,
-      /desconsidere as restrições/i,
-      /bypass safety/i,
-      /modo (desenvolvedor|dan|livre|sem regras)/i,
+      /reveal (your )?(system prompt|instructions)/i,
+      /mostre (seu|o) (prompt de sistema|instruções secretas)/i,
+      /esqueça (todas as )?(suas )?(instruções|regras)/i,
       /jailbreak/i,
       /sudo /i,
       /<script[\s\S]*?>[\s\S]*?<\/script>/i,
@@ -287,8 +279,7 @@ class MarmitaBotEngine {
       /onerror\s*=/i,
       /onload\s*=/i,
       /eval\s*\(/i,
-      /document\.cookie/i,
-      /window\.location/i
+      /document\.cookie/i
     ];
 
     for (const pattern of injectionPatterns) {
@@ -296,24 +287,20 @@ class MarmitaBotEngine {
         return {
           safe: false,
           isAttack: true,
-          reason: '🚨 TENTATIVA DE JAILBREAK/INJEÇÃO BLOQUEADA: O sistema detectou tentativa de evasão de diretrizes. Este chatbot possui escopo rígido e imutável para vendas de marmitas.'
+          reason: '🚨 TENTATIVA DE JAILBREAK/INJEÇÃO BLOQUEADA: Este chatbot opera com máquina de estados imutável dedicada exclusivamente a marmitas no DF.'
         };
       }
     }
 
-    // 4. Domínio Fechado (Strict Domain Restriction)
-    // Impede o uso de tokens para geração de redações, código, conversas aleatórias, etc.
+    // Domínio restrito
     const forbiddenDomains = [
-      /escreva (um|uma) (poema|código|redação|script|história|artigo)/i,
+      /escreva (um|uma) (poema|código|redação|script|história)/i,
       /qual é a capital /i,
       /resolva (a|o) cálculo/i,
       /quem (foi|é) (o|a) presidente/i,
       /me conte uma piada/i,
-      /traduza para o inglês/i,
       /como hackear/i,
-      /crie um código/i,
-      /fale sobre política/i,
-      /fale sobre futebol/i
+      /fale sobre política/i
     ];
 
     for (const pattern of forbiddenDomains) {
@@ -321,7 +308,7 @@ class MarmitaBotEngine {
         return {
           safe: false,
           isAttack: false,
-          reason: '🚫 ESCOPO EXCLUSIVO: Sou a atendente virtual da Marmitas Brasília e meu funcionamento é 100% focado no atendimento e montagem do seu pedido de marmita! Não realizo tarefas externas como redações, códigos ou bate-papo geral.'
+          reason: '🚫 ESCOPO EXCLUSIVO: Sou a atendente da Marmitas Brasília e meu funcionamento é 100% focado no cardápio e no fechamento do seu almoço ou jantar!'
         };
       }
     }
@@ -329,107 +316,86 @@ class MarmitaBotEngine {
     return { safe: true };
   }
 
-  matchesAny(text, keywords) {
-    return keywords.some(keyword => text.includes(keyword));
-  }
-
-  // ==========================================
-  // PROCESSAMENTO DE LINGUAGEM NATURAL (CLIENT-SIDE NLP PIPELINE)
-  // ==========================================
   processUserMessage(rawText) {
-    // 1. Validação pelos Guardrails de Segurança Defensiva
     const securityCheck = this.validateSecurityGuardrails(rawText);
     if (!securityCheck.safe) {
-      return {
-        reply: securityCheck.reason,
-        isGuardrailAlert: true
-      };
+      return { reply: securityCheck.reason, isGuardrailAlert: true };
     }
 
-    // 2. Pré-processamento e Análise de NLP (Normalização e Classificação de Intenção)
-    const norm = NLPProcessor.normalize(rawText);
     const intent = NLPProcessor.detectIntent(rawText);
     const entities = NLPProcessor.extractEntities(rawText);
 
-    // Se estiver no fluxo de finalização e enviou endereço
+    // Fluxo de Endereço no DF
     if (this.sessionState.step === 'ASKING_ADDRESS') {
       if (rawText.trim().length < 5) {
         return {
-          reply: 'Por favor, informe um endereço completo válido (Rua, número e bairro) para calcularmos e realizarmos a entrega.'
+          reply: 'Por favor, informe um endereço completo no DF (Ex: Asa Sul, Bloco X ou Águas Claras, Rua Y) para realizarmos a entrega.'
         };
       }
       this.sessionState.address = rawText;
       this.sessionState.step = 'PAYMENT';
       return {
-        reply: `📍 Endereço registrado: **${this.escapeHtml(rawText)}**\n\nQual será a forma de pagamento?\n1. **PIX**\n2. **Cartão (Débito/Crédito na entrega)**\n3. **Dinheiro**`
+        reply: `📍 Endereço registrado em Brasília: **${this.escapeHtml(rawText)}**\n\nQual será a forma de pagamento?\n1. **PIX**\n2. **Cartão (Débito/Crédito na entrega)**\n3. **Dinheiro**`
       };
     }
 
+    // Fluxo de Pagamento
     if (this.sessionState.step === 'PAYMENT') {
       const payment = entities.paymentMethod || rawText;
       this.sessionState.payment = payment;
       this.sessionState.step = 'COMPLETED';
       return {
-        reply: `🎉 Pedido registrado com sucesso!\n\nForma de Pagamento: **${this.escapeHtml(payment)}**.\nClique no botão verde **"Finalizar Pedido"** ao lado para enviar a comanda pronta no WhatsApp do restaurante ou confirmar.`
+        reply: `🎉 Pedido registrado com sucesso na **Marmitas Brasília**!\n\nForma de Pagamento: **${this.escapeHtml(payment)}**.\nClique no botão verde **"Finalizar Pedido no WhatsApp"** na sua comanda para enviar o pedido pronto para nossa cozinha!`
       };
     }
 
-    // 3. Comandos baseados na Intenção detectada pelo NLP
+    // Comandos de Intenção
     if (intent === 'RESTART') {
       this.cart = [];
       this.sessionState.step = 'GREETING';
-      this.sessionState.pendingItem = null;
-      return {
-        reply: '🔄 Carrinho limpo e conversa reiniciada! Como posso te ajudar hoje? Diga o que deseja comer ou digite "cardápio".'
-      };
+      return { reply: '🔄 Comanda limpa e conversa reiniciada! Como posso te ajudar hoje na Marmitas Brasília? Escolha um prato ou digite "cardápio".' };
     }
 
     if (intent === 'HELP') {
       return {
-        reply: `💡 **Como posso te ajudar (Motor NLP Ativo):**
-1. Peça marmitas em linguagem natural: *"Quero 2 bife de vaca bem passado sem cebola"*
-2. Consulte o cardápio: *"ver cardápio"* ou *"o que tem pra hoje?"*
-3. Finalize quando quiser: *"fechar pedido"* ou *"concluir"*
-4. Personalize: altere temperos, acompanhamentos e pontos de carne à vontade!`
+        reply: `💡 **Como pedir na Marmitas Brasília:**
+1. **Pelo Chat:** Digite *"Quero 2 bife bovino bem passado sem cebola"*
+2. **Pela Vitrine:** Clique em **+ Adicionar** em qualquer prato acima para escolher temperos e ponto da carne
+3. **Cardápio do dia:** Digite *"cardápio"* ou alterne os dias da semana no topo
+4. **Finalizar:** Digite *"fechar pedido"* ou clique na sacola de compras!`
       };
     }
 
     if (intent === 'VIEW_MENU') {
-      return {
-        reply: this.formatMenuSummary(this.currentDayKey)
-      };
+      return { reply: this.formatMenuSummary(this.currentDayKey) };
     }
 
     if (intent === 'CHECKOUT') {
       return this.handleCheckoutSummary();
     }
 
-    // 4. Reconhecimento de Prato com Algoritmo de Similaridade / NLP
+    // Reconhecimento de prato por NLP
     const matchedItem = this.findMatchingItemNLP(rawText);
     if (matchedItem) {
       return this.handleItemSelectionNLP(matchedItem, rawText, entities);
     }
 
-    // Fallback inteligente
     return {
-      reply: `Desculpe, não consegui identificar o prato desejado. Você gostaria de pedir algum prato do cardápio de hoje?\n\nExemplo de como pedir:\n👉 *"Quero 1 Bife de vaca ao ponto sem cebola e pouco sal"* ou digite **"cardápio"** para ver as opções do dia.`
+      reply: `Desculpe, não consegui identificar o prato. Você gostaria de escolher alguma das opções da vitrine de hoje?\n\nExemplo:\n👉 *"Quero 1 Bife bovino ao ponto sem cebola"* ou digite **"cardápio"**.`
     };
   }
 
-  // Identifica prato usando NLP: correspondência exata, sinônimos e similaridade de Levenshtein
   findMatchingItemNLP(text) {
     const norm = NLPProcessor.normalize(text);
     const tokens = NLPProcessor.tokenize(norm).map(t => NLPProcessor.stem(t));
     const currentMenu = MENU_DATA[this.currentDayKey] || MENU_DATA['segunda'];
 
-    // 1. Busca no cardápio de hoje
     for (const item of currentMenu) {
       const itemNorm = NLPProcessor.normalize(item.name);
       if (norm.includes(itemNorm) || norm.includes(NLPProcessor.normalize(item.id))) {
         return item;
       }
 
-      // Token match
       const itemTokens = NLPProcessor.tokenize(itemNorm).map(t => NLPProcessor.stem(t));
       for (const t of tokens) {
         for (const it of itemTokens) {
@@ -439,14 +405,13 @@ class MarmitaBotEngine {
         }
       }
 
-      // Regras semânticas por tipo de carne
-      if (item.meatType === 'bovino' && (norm.includes('bife') || norm.includes('vaca') || norm.includes('carne') || norm.includes('alcatra') || norm.includes('picanha'))) {
+      if (item.meatType === 'bovino' && (norm.includes('bife') || norm.includes('vaca') || norm.includes('carne') || norm.includes('alcatra') || norm.includes('contrafile') || norm.includes('picanha'))) {
         return item;
       }
       if (item.meatType === 'suino' && (norm.includes('feijoada') || norm.includes('virado') || norm.includes('bisteca') || norm.includes('porco'))) {
         return item;
       }
-      if (item.meatType === 'frango' && (norm.includes('frango') || norm.includes('strogonoff') || norm.includes('parmegiana') || norm.includes('sobrecoxa') || norm.includes('galinha'))) {
+      if (item.meatType === 'frango' && (norm.includes('frango') || norm.includes('strogonoff') || norm.includes('parmegiana') || norm.includes('sobrecoxa'))) {
         return item;
       }
       if (item.meatType === 'peixe' && (norm.includes('peixe') || norm.includes('tilapia') || norm.includes('pescado'))) {
@@ -454,20 +419,9 @@ class MarmitaBotEngine {
       }
     }
 
-    // 2. Busca nos outros dias caso o usuário mencione pratos de outro dia
-    for (const day in MENU_DATA) {
-      for (const item of MENU_DATA[day]) {
-        const itemNorm = NLPProcessor.normalize(item.name);
-        if (norm.includes(itemNorm)) {
-          return item;
-        }
-      }
-    }
-
     return null;
   }
 
-  // Processa a seleção do item com entidades extraídas pelo NLP
   handleItemSelectionNLP(item, rawText, entities) {
     const quantity = entities.quantity || 1;
     let cookingPoint = null;
@@ -476,14 +430,13 @@ class MarmitaBotEngine {
       cookingPoint = entities.cookingPoint || 'Ao ponto (Padrão)';
     }
 
-    // Combina modificações extraídas com observações manuais (obs: ...)
     const modifications = [...entities.modifiers];
     const obsMatch = rawText.match(/obs:?\s*(.*?)(?=\.|$)/i);
     if (obsMatch && obsMatch[1]) {
       modifications.push(`Obs: ${obsMatch[1].trim()}`);
     }
 
-    const notes = modifications.length > 0 ? modifications.join(', ') : 'Tempero padrão da casa';
+    const notes = modifications.length > 0 ? modifications.join(', ') : 'Tempero padrão artesanal';
 
     const orderItem = {
       id: `${item.id}-${Date.now()}`,
@@ -497,7 +450,7 @@ class MarmitaBotEngine {
 
     this.cart.push(orderItem);
 
-    let reply = `🍽️ Adicionei ao seu pedido:\n- **${quantity}x ${item.name}**\n- Valor unitário: R$ ${item.price.toFixed(2).replace('.', ',')}`;
+    let reply = `🍽️ Adicionado à sua comanda:\n- **${quantity}x ${item.name}**\n- Valor unitário: R$ ${item.price.toFixed(2).replace('.', ',')}`;
     if (cookingPoint) {
       reply += `\n- Ponto da carne: **${cookingPoint}**`;
     }
@@ -507,7 +460,7 @@ class MarmitaBotEngine {
     const subtotal = this.calculateSubtotal();
     const total = subtotal + DELIVERY_FEE;
 
-    reply += `\n\n📦 Seu pedido no momento tem **${this.cart.length} item(ns)** somando **R$ ${total.toFixed(2).replace('.', ',')}** (com taxa de entrega inclusa).\n\nDeseja adicionar mais alguma marmita ou quer **fechar o pedido** agora?`;
+    reply += `\n\n📦 Sua comanda possui **${this.cart.length} item(ns)** somando **R$ ${total.toFixed(2).replace('.', ',')}** (com entrega no DF inclusa).\n\nDeseja adicionar mais marmitas ou quer **fechar o pedido** agora?`;
 
     return { reply, cartUpdated: true };
   }
@@ -515,29 +468,29 @@ class MarmitaBotEngine {
   handleCheckoutSummary() {
     if (this.cart.length === 0) {
       return {
-        reply: 'Seu carrinho ainda está vazio! Que tal dar uma olhada no cardápio de hoje e escolher sua refeição? Digite "cardápio" para ver.'
+        reply: 'Sua comanda ainda está vazia! Escolha algum prato da nossa vitrine gourmet ou digite "cardápio" para começar.'
       };
     }
 
     const subtotal = this.calculateSubtotal();
     const total = subtotal + DELIVERY_FEE;
 
-    let summary = `📋 **Resumo Geral do Pedido:**\n\n`;
+    let summary = `📋 **Resumo da Comanda - Marmitas Brasília:**\n\n`;
     this.cart.forEach((item, index) => {
       summary += `${index + 1}. **${item.quantity}x ${item.name}** (R$ ${item.unitPrice.toFixed(2).replace('.', ',')} un.)\n`;
       if (item.cookingPoint) summary += `   🥩 Ponto: ${item.cookingPoint}\n`;
-      summary += `   🧂 Ajustes: ${item.notes}\n`;
+      summary += `   🧂 Temperos: ${item.notes}\n`;
       summary += `   💵 Subtotal: R$ ${item.total.toFixed(2).replace('.', ',')}\n\n`;
     });
 
     summary += `------------------------------\n`;
     summary += `🍲 Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
-    summary += `🛵 Taxa de Entrega: R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')}\n`;
+    summary += `🛵 Taxa de Entrega (DF): R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')}\n`;
     summary += `💰 **TOTAL A PAGAR: R$ ${total.toFixed(2).replace('.', ',')}**\n`;
     summary += `------------------------------\n\n`;
 
     this.sessionState.step = 'ASKING_ADDRESS';
-    summary += `Por favor, digite seu **endereço completo com número e bairro** para realizarmos a entrega:`;
+    summary += `Por favor, digite seu **endereço no DF (Bairro, quadra/rua e número)** para realizarmos a entrega:`;
 
     return { reply: summary };
   }
@@ -558,105 +511,243 @@ class MarmitaBotEngine {
       domingo: 'Domingo'
     };
 
-    let text = `📅 **Cardápio de ${dayNames[dayKey]}:**\n\n`;
+    let text = `📅 **Cardápio de ${dayNames[dayKey]} em Brasília:**\n\n`;
     list.forEach(item => {
-      text += `🍱 **${item.name}** - R$ ${item.price.toFixed(2).replace('.', ',')}/unidade\n`;
-      text += `   ${item.desc}\n\n`;
+      text += `${item.icon} **${item.name}** - R$ ${item.price.toFixed(2).replace('.', ',')}\n`;
+      text += `   _${item.desc}_\n\n`;
     });
-    text += `🛵 *Taxa de entrega:* R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')} (fixa)\n`;
-    text += `💬 *Dica:* Para pedir, diga por exemplo: *"Quero 1 ${list[0].name} sem cebola"*`;
+    text += `🛵 *Taxa de entrega:* R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')} (fixa no DF)\n`;
+    text += `💬 Peça digitando: *"Quero 1 ${list[0].name} sem cebola"*`;
     return text;
   }
 
   escapeHtml(text) {
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return text.replace(/[&<>"']/g, m => map[m]);
   }
 }
 
-// 3. CONTROLADOR DE INTERFACE DO USUÁRIO (UI CONTROLLER)
+// ==========================================
+// 4. CONTROLADOR DA UI (VITRINE GOURMET & CHAT)
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   const botEngine = new MarmitaBotEngine();
 
   // Elementos do DOM
+  const gourmetGrid = document.getElementById('gourmetGrid');
+  const showcaseDayTitle = document.getElementById('showcaseDayTitle');
+  const itemsCountBadge = document.getElementById('itemsCountBadge');
+  const dayChips = document.getElementById('dayChips');
+  const categoryFilters = document.getElementById('categoryFilters');
+
+  // Chat Elements
+  const chatSidebar = document.getElementById('chatSidebar');
   const chatMessages = document.getElementById('chatMessages');
   const chatForm = document.getElementById('chatForm');
   const userInput = document.getElementById('userInput');
-  const daySelect = document.getElementById('daySelect');
-  const menuList = document.getElementById('menuList');
-  const menuDayLabel = document.getElementById('menuDayLabel');
+  const charCounter = document.getElementById('charCounter');
+  const btnOpenChat = document.getElementById('btnOpenChat');
+  const btnCloseChat = document.getElementById('btnCloseChat');
+  const btnClearChat = document.getElementById('btnClearChat');
+  const quickActionsBar = document.getElementById('quickActionsBar');
+
+  // Cart Drawer Elements
+  const cartDrawer = document.getElementById('cartDrawer');
+  const btnToggleCart = document.getElementById('btnToggleCart');
+  const btnCloseCart = document.getElementById('btnCloseCart');
   const cartItemsList = document.getElementById('cartItemsList');
   const cartEmpty = document.getElementById('cartEmpty');
   const cartSubtotal = document.getElementById('cartSubtotal');
   const cartDeliveryFee = document.getElementById('cartDeliveryFee');
   const cartTotal = document.getElementById('cartTotal');
   const cartCount = document.getElementById('cartCount');
+  const navCartCount = document.getElementById('navCartCount');
   const btnCheckout = document.getElementById('btnCheckout');
-  const btnClearChat = document.getElementById('btnClearChat');
-  const btnToggleSidebar = document.getElementById('btnToggleSidebar');
-  const sidebar = document.getElementById('sidebar');
-  const quickActionsBar = document.getElementById('quickActionsBar');
-  const charCounter = document.getElementById('charCounter');
 
-  // Monitoramento dinâmico do contador de caracteres (limite 300)
-  if (userInput && charCounter) {
-    userInput.addEventListener('input', () => {
-      const len = userInput.value.length;
-      charCounter.textContent = `${len}/300`;
+  // Modal Customização
+  const customModal = document.getElementById('customModal');
+  const btnCloseModal = document.getElementById('btnCloseModal');
+  const modalEmoji = document.getElementById('modalEmoji');
+  const modalDishName = document.getElementById('modalDishName');
+  const modalDishPrice = document.getElementById('modalDishPrice');
+  const meatPointGroup = document.getElementById('meatPointGroup');
+  const modalQtyDisplay = document.getElementById('modalQtyDisplay');
+  const btnQtyMinus = document.getElementById('btnQtyMinus');
+  const btnQtyPlus = document.getElementById('btnQtyPlus');
+  const modalTotalPrice = document.getElementById('modalTotalPrice');
+  const btnConfirmAdd = document.getElementById('btnConfirmAdd');
 
-      if (len >= 300) {
-        charCounter.classList.add('limit-reached');
-        charCounter.classList.remove('limit-near');
-      } else if (len >= 260) {
-        charCounter.classList.add('limit-near');
-        charCounter.classList.remove('limit-reached');
-      } else {
-        charCounter.classList.remove('limit-near', 'limit-reached');
-      }
-    });
-  }
+  let currentCategory = 'all';
+  let modalSelectedItem = null;
+  let modalQty = 1;
 
-  // Renderizar cardápio na sidebar
-  function renderSidebarMenu(dayKey) {
+  // Renderizar Vitrine Gourmet com Filtros
+  function renderGourmetShowcase(dayKey, category = 'all') {
     const list = MENU_DATA[dayKey] || MENU_DATA['segunda'];
-    menuList.innerHTML = '';
-    menuDayLabel.textContent = dayKey;
+    const dayNames = {
+      segunda: 'Segunda-feira',
+      terca: 'Terça-feira',
+      quarta: 'Quarta-feira',
+      quinta: 'Quinta-feira',
+      sexta: 'Sexta-feira',
+      sabado: 'Sábado',
+      domingo: 'Domingo'
+    };
 
-    list.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'menu-card';
-      card.innerHTML = `
-        <div class="menu-card-title">
-          <span>${item.name}</span>
-          <span class="menu-card-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+    showcaseDayTitle.textContent = `Cardápio Gourmet • ${dayNames[dayKey] || 'Hoje'}`;
+
+    // Filtragem por categoria
+    let filtered = list;
+    if (category === 'fit') {
+      filtered = list.filter(item => item.fit);
+    } else if (category !== 'all') {
+      filtered = list.filter(item => item.meatType === category);
+    }
+
+    itemsCountBadge.textContent = `${filtered.length} prato(s) fresco(s)`;
+    gourmetGrid.innerHTML = '';
+
+    if (filtered.length === 0) {
+      gourmetGrid.innerHTML = `
+        <div style="grid-column: 1/-1; padding: 3rem; text-align: center; color: var(--slate-500); background: var(--white); border-radius: var(--radius-lg); border: 1.5px dashed var(--slate-200);">
+          <i class="fa-solid fa-utensils" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+          <p>Nenhum prato encontrado nesta categoria para ${dayNames[dayKey]}.</p>
+          <small>Selecione "Todos os Pratos" para ver o cardápio completo do dia.</small>
         </div>
-        <div class="menu-card-desc">${item.desc}</div>
-        <div class="menu-card-tags">
-          <span class="mini-tag"><i class="fa-solid fa-tag"></i> Porção individual</span>
-          ${item.meatType === 'bovino' ? '<span class="mini-tag">🥩 Escolha o ponto</span>' : ''}
-          <span class="mini-tag">🧂 Temperos ajustáveis</span>
+      `;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'gourmet-card';
+      card.innerHTML = `
+        <div class="card-media">
+          <div class="card-top-tags">
+            <span class="tag-day">${dayNames[dayKey]}</span>
+            <span class="tag-meat">${item.fit ? '🥗 Linha Fit' : item.meatType.toUpperCase()}</span>
+          </div>
+          <span class="card-food-art">${item.icon}</span>
+        </div>
+        <div class="card-content">
+          <h4 class="card-title">${item.name}</h4>
+          <p class="card-desc">${item.desc}</p>
+          <div class="card-perks">
+            <span class="perk-pill"><i class="fa-solid fa-fire"></i> ${item.cals}</span>
+            ${item.meatType === 'bovino' ? '<span class="perk-pill">🥩 Ponto à escolha</span>' : ''}
+            <span class="perk-pill">🧂 Sem conservantes</span>
+          </div>
+          <div class="card-footer">
+            <div class="price-box">
+              <span class="price-label">Valor unitário</span>
+              <span class="price-val">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+            </div>
+            <button class="btn-add-card" data-id="${item.id}">
+              <i class="fa-solid fa-plus"></i> Adicionar
+            </button>
+          </div>
         </div>
       `;
 
-      card.addEventListener('click', () => {
-        userInput.value = `Quero 1 ${item.name} ao ponto sem cebola`;
-        userInput.focus();
+      // Clique no botão Adicionar abre o modal de customização
+      card.querySelector('.btn-add-card').addEventListener('click', () => {
+        openCustomModal(item);
       });
 
-      menuList.appendChild(card);
+      gourmetGrid.appendChild(card);
     });
   }
 
-  // Atualizar visualização do carrinho
+  // Modal de Customização do Prato
+  function openCustomModal(item) {
+    modalSelectedItem = item;
+    modalQty = 1;
+    modalEmoji.textContent = item.icon;
+    modalDishName.textContent = item.name;
+    modalDishPrice.textContent = `R$ ${item.price.toFixed(2).replace('.', ',')}`;
+
+    // Mostra seletor de ponto apenas para bovinos
+    meatPointGroup.style.display = item.meatType === 'bovino' ? 'flex' : 'none';
+
+    // Reset checkboxes
+    document.querySelectorAll('.custom-checkboxes input').forEach(chk => chk.checked = false);
+    modalQtyDisplay.textContent = modalQty;
+    updateModalTotal();
+
+    customModal.classList.add('open');
+  }
+
+  function updateModalTotal() {
+    if (!modalSelectedItem) return;
+    const total = modalSelectedItem.price * modalQty;
+    modalTotalPrice.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+  }
+
+  btnQtyMinus.addEventListener('click', () => {
+    if (modalQty > 1) {
+      modalQty--;
+      modalQtyDisplay.textContent = modalQty;
+      updateModalTotal();
+    }
+  });
+
+  btnQtyPlus.addEventListener('click', () => {
+    if (modalQty < 20) {
+      modalQty++;
+      modalQtyDisplay.textContent = modalQty;
+      updateModalTotal();
+    }
+  });
+
+  btnCloseModal.addEventListener('click', () => {
+    customModal.classList.remove('open');
+  });
+
+  customModal.addEventListener('click', (e) => {
+    if (e.target === customModal) customModal.classList.remove('open');
+  });
+
+  // Confirmação de Adição no Modal
+  btnConfirmAdd.addEventListener('click', () => {
+    if (!modalSelectedItem) return;
+
+    let cookingPoint = null;
+    if (modalSelectedItem.meatType === 'bovino') {
+      const selectedPoint = document.querySelector('input[name="meatPoint"]:checked');
+      cookingPoint = selectedPoint ? selectedPoint.value : 'Ao ponto';
+    }
+
+    const modifications = [];
+    document.querySelectorAll('.custom-checkboxes input:checked').forEach(chk => {
+      modifications.push(chk.value);
+    });
+
+    const notes = modifications.length > 0 ? modifications.join(', ') : 'Tempero padrão da casa';
+
+    const orderItem = {
+      id: `${modalSelectedItem.id}-${Date.now()}`,
+      name: modalSelectedItem.name,
+      unitPrice: modalSelectedItem.price,
+      quantity: modalQty,
+      cookingPoint: cookingPoint,
+      notes: notes,
+      total: modalSelectedItem.price * modalQty
+    };
+
+    botEngine.cart.push(orderItem);
+    updateCartUI();
+    customModal.classList.remove('open');
+    cartDrawer.classList.add('open');
+
+    // Notificação sutil no chat
+    appendMessage('bot', `🍱 Adicionei **${modalQty}x ${modalSelectedItem.name}** à sua comanda! Deseja mais alguma opção ou quer fechar o pedido?`);
+  });
+
+  // Atualizar Comanda / Carrinho
   function updateCartUI() {
     const count = botEngine.cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.textContent = count;
+    navCartCount.textContent = count;
 
     if (botEngine.cart.length === 0) {
       cartEmpty.style.display = 'flex';
@@ -703,16 +794,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listeners de remoção
     document.querySelectorAll('.cart-item-remove').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const idx = parseInt(btn.dataset.index);
         botEngine.cart.splice(idx, 1);
         updateCartUI();
-        appendMessage('bot', '🗑️ Item removido do carrinho.');
+        appendMessage('bot', '🗑️ Item removido da comanda.');
       });
     });
   }
 
-  // Adicionar mensagem na tela do chat
+  // Adicionar Mensagem ao Chat
   function appendMessage(sender, text, isGuardrail = false) {
     const row = document.createElement('div');
     row.className = `message-row ${sender}`;
@@ -740,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  // Envio de mensagem
+  // Envio de Mensagem no Chat
   chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = userInput.value.trim();
@@ -748,54 +839,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     appendMessage('user', text);
     userInput.value = '';
-    if (charCounter) {
-      charCounter.textContent = '0/300';
-      charCounter.classList.remove('limit-near', 'limit-reached');
-    }
+    charCounter.textContent = '0/300';
 
-    // Processar pelo motor inteligente com guardrails e NLP
     setTimeout(() => {
       const result = botEngine.processUserMessage(text);
       appendMessage('bot', result.reply, result.isGuardrailAlert || false);
       if (result.cartUpdated) {
         updateCartUI();
       }
-    }, 300);
+    }, 250);
   });
 
-  // Ações rápidas
-  quickActionsBar.addEventListener('click', (e) => {
-    if (e.target.classList.contains('quick-pill')) {
-      const action = e.target.dataset.action;
-      if (action === 'ver_cardapio') {
-        appendMessage('user', 'Ver cardápio');
-        appendMessage('bot', botEngine.formatMenuSummary(botEngine.currentDayKey));
-      } else if (action === 'fechar_pedido') {
-        appendMessage('user', 'Fechar pedido');
-        const res = botEngine.handleCheckoutSummary();
-        appendMessage('bot', res.reply);
-      } else if (action === 'ajuda') {
-        appendMessage('user', 'Como funciona');
-        const res = botEngine.processUserMessage('ajuda');
-        appendMessage('bot', res.reply);
-      } else if (action === 'limpar') {
-        appendMessage('user', 'Reiniciar pedido');
-        const res = botEngine.processUserMessage('limpar');
-        appendMessage('bot', res.reply);
-        updateCartUI();
-      }
-    }
+  // Contador de caracteres
+  userInput.addEventListener('input', () => {
+    const len = userInput.value.length;
+    charCounter.textContent = `${len}/300`;
   });
 
-  // Mudança de dia no seletor
-  daySelect.addEventListener('change', (e) => {
-    const selected = e.target.value;
-    botEngine.setDay(selected);
-    renderSidebarMenu(botEngine.currentDayKey);
-    appendMessage('bot', `🗓️ Cardápio alternado para **${selected.toUpperCase()}**.\n` + botEngine.formatMenuSummary(botEngine.currentDayKey));
+  // Alternar Dias na Vitrine
+  dayChips.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+
+    document.querySelectorAll('.day-chips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+
+    const selectedDay = chip.dataset.day;
+    botEngine.setDay(selectedDay);
+    renderGourmetShowcase(botEngine.currentDayKey, currentCategory);
+    appendMessage('bot', `🗓️ Vitrine alternada para **${selectedDay.toUpperCase()}** no DF!`);
   });
 
-  // Botão Limpar / Reiniciar do topo
+  // Filtros de Categoria
+  categoryFilters.addEventListener('click', (e) => {
+    const pill = e.target.closest('.cat-pill');
+    if (!pill) return;
+
+    document.querySelectorAll('.category-filters .cat-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+
+    currentCategory = pill.dataset.cat;
+    renderGourmetShowcase(botEngine.currentDayKey, currentCategory);
+  });
+
+  // Controles do Chat
+  btnOpenChat.addEventListener('click', () => {
+    chatSidebar.classList.remove('closed');
+    chatSidebar.classList.add('open-mobile');
+    userInput.focus();
+  });
+
+  btnCloseChat.addEventListener('click', () => {
+    chatSidebar.classList.add('closed');
+    chatSidebar.classList.remove('open-mobile');
+  });
+
   btnClearChat.addEventListener('click', () => {
     chatMessages.innerHTML = '';
     botEngine.cart = [];
@@ -804,9 +902,39 @@ document.addEventListener('DOMContentLoaded', () => {
     initGreeting();
   });
 
-  // Toggle do menu em telas pequenas
-  btnToggleSidebar.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
+  // Controles do Carrinho Drawer
+  btnToggleCart.addEventListener('click', () => {
+    cartDrawer.classList.toggle('open');
+  });
+
+  btnCloseCart.addEventListener('click', () => {
+    cartDrawer.classList.remove('open');
+  });
+
+  // Ações Rápidas
+  quickActionsBar.addEventListener('click', (e) => {
+    const pill = e.target.closest('.quick-pill');
+    if (!pill) return;
+    const action = pill.dataset.action;
+
+    if (action === 'ver_cardapio') {
+      appendMessage('user', 'Ver cardápio');
+      appendMessage('bot', botEngine.formatMenuSummary(botEngine.currentDayKey));
+    } else if (action === 'fechar_pedido') {
+      appendMessage('user', 'Fechar pedido');
+      const res = botEngine.handleCheckoutSummary();
+      appendMessage('bot', res.reply);
+      cartDrawer.classList.add('open');
+    } else if (action === 'ajuda') {
+      appendMessage('user', 'Como pedir');
+      const res = botEngine.processUserMessage('ajuda');
+      appendMessage('bot', res.reply);
+    } else if (action === 'limpar') {
+      appendMessage('user', 'Limpar pedido');
+      const res = botEngine.processUserMessage('limpar');
+      appendMessage('bot', res.reply);
+      updateCartUI();
+    }
   });
 
   // Checkout WhatsApp
@@ -817,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const total = subtotal + DELIVERY_FEE;
 
     let msg = `*🍱 NOVO PEDIDO - MARMITAS BRASÍLIA*\n`;
-    msg += `_Atendimento Digital via Chatbot Web_\n\n`;
+    msg += `_Cozinha Artesanal & Gourmet no DF_\n\n`;
     botEngine.cart.forEach((item, i) => {
       msg += `*${i + 1}. ${item.quantity}x ${item.name}*\n`;
       if (item.cookingPoint) msg += `🥩 Ponto: ${item.cookingPoint}\n`;
@@ -837,32 +965,28 @@ document.addEventListener('DOMContentLoaded', () => {
       msg += `💳 *Forma de Pagamento:* ${botEngine.sessionState.payment}\n`;
     }
 
-    msg += `\n_Pedido gerado 100% no navegador (Client-Side, sem LLM)._`;
+    msg += `\n_Pedido gerado via Vitrine Gourmet & Chatbot Client-Side (Sem LLM)._`;
 
     const whatsappUrl = `https://wa.me/5561999999999?text=${encodeURIComponent(msg)}`;
     window.open(whatsappUrl, '_blank');
   });
 
-  // Mensagem inicial de boas-vindas
+  // Boas-vindas inicial no Chat
   function initGreeting() {
-    const greeting = `👋 Olá! Seja muito bem-vindo(a) à **Marmitas Brasília**!
-Eu sou a **Candanga**, sua assistente virtual de atendimento inteligente aqui no DF.
+    const greeting = `👋 Olá! Bem-vindo(a) à **Marmitas Brasília**!
+Eu sou a **Candanga**, sua atendente virtual com inteligência **100% Client-Side** (sem LLM).
 
-⚡ **Chatbot 100% Client-Side:** Todo o processamento funciona diretamente no seu navegador usando algoritmos de NLP e Máquina de Estados, **sem depender de LLM ou servidores externos**!
+🍱 Você pode:
+1. Clicar em **+ Adicionar** em qualquer prato da vitrine ao lado.
+2. Ou me pedir direto no chat: *"Quero 2 bife bovino bem passado sem cebola"*.
 
-🍛 **Como posso montar seu pedido hoje?**
-• Escolha qualquer marmita do cardápio pelo nome
-• Ajuste temperos à vontade (ex: *sem cebola*, *pouco sal*, *sem salada*, *molho à parte*)
-• Defina o ponto da sua carne (*ao ponto*, *bem passada*, *mal passada*)
-• Informe a quantidade (*"quero 2 marmitas..."*)
-
-Diga o que você quer saborear ou clique em **"📋 Ver Cardápio"** para ver as opções do dia!`;
+O que você deseja saborear hoje?`;
 
     appendMessage('bot', greeting);
   }
 
   // Inicialização
-  renderSidebarMenu(botEngine.currentDayKey);
+  renderGourmetShowcase(botEngine.currentDayKey);
   updateCartUI();
   initGreeting();
 });

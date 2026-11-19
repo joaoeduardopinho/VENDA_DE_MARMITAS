@@ -3,129 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Marmitas Brasília - Atendimento Inteligente & Pedidos Online</title>
-  <meta name="description" content="Marmitas artesanais e caseiras em Brasília com atendimento rápido 100% no navegador (Client-Side, sem LLM/servidor).">
+  <title>Marmitas Brasília - Vitrine Gourmet & Atendimento Inteligente</title>
+  <meta name="description" content="Marmitas gourmet e caseiras artesanais em Brasília com entrega rápida e atendimento digital 100% no navegador (Client-Side, sem LLM).">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-layout">
-    <!-- Sidebar: Cardápio do Dia & Informações de Brasília -->
-    <aside class="sidebar" id="sidebar">
+  <!-- Cabeçalho Principal (Navbar Gourmet) -->
+  <header class="gourmet-navbar">
+    <div class="nav-container">
       <div class="brand">
-        <div class="logo-badge">
-          <span class="logo-emoji">🍱</span>
-          <span class="bsb-tag">DF</span>
+        <div class="brand-logo">
+          <span class="logo-icon">🍱</span>
+          <span class="badge-bsb">DF</span>
         </div>
-        <div class="brand-text">
-          <h2>Marmitas Brasília</h2>
-          <span class="status-badge"><span class="status-dot"></span> Entregas no DF • Online</span>
-        </div>
-      </div>
-
-      <div class="day-selector-card">
-        <label for="daySelect"><i class="fa-regular fa-calendar-days"></i> Cardápio por Dia:</label>
-        <div class="select-wrapper">
-          <select id="daySelect" class="form-select">
-            <option value="hoje">📅 Cardápio de Hoje</option>
-            <option value="segunda">Segunda-feira</option>
-            <option value="terca">Terça-feira</option>
-            <option value="quarta">Quarta-feira</option>
-            <option value="quinta">Quinta-feira</option>
-            <option value="sexta">Sexta-feira</option>
-            <option value="sabado">Sábado</option>
-            <option value="domingo">Domingo</option>
-          </select>
-          <i class="fa-solid fa-chevron-down select-icon"></i>
+        <div class="brand-info">
+          <h1>Marmitas Brasília</h1>
+          <p class="brand-slogan"><span class="dot-online"></span> Cozinha Artesanal • Entregas no DF</p>
         </div>
       </div>
 
-      <div class="menu-container">
-        <div class="menu-header">
+      <div class="nav-highlights">
+        <div class="highlight-item">
+          <i class="fa-solid fa-motorcycle"></i>
           <div>
-            <h3>Pratos do Cardápio</h3>
-            <p class="menu-sub">Toque em um prato para pedir</p>
-          </div>
-          <span class="badge" id="menuDayLabel">Hoje</span>
-        </div>
-        <div class="menu-list" id="menuList">
-          <!-- Gerado dinamicamente via JavaScript -->
-        </div>
-      </div>
-
-      <div class="quick-info">
-        <div class="info-item">
-          <div class="info-icon delivery"><i class="fa-solid fa-motorcycle"></i></div>
-          <div>
-            <strong>Taxa de Entrega</strong>
-            <p>R$ 6,00 fixa (Plano Piloto & Regiões)</p>
+            <span>Entrega Fixa</span>
+            <strong>R$ 6,00 (DF)</strong>
           </div>
         </div>
-        <div class="info-item">
-          <div class="info-icon time"><i class="fa-solid fa-bolt"></i></div>
+        <div class="highlight-item">
+          <i class="fa-solid fa-clock"></i>
           <div>
-            <strong>Tempo Médio</strong>
-            <p>30 a 45 minutos no DF</p>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-icon privacy"><i class="fa-solid fa-shield-halved"></i></div>
-          <div>
-            <strong>100% Client-Side</strong>
-            <p>Sem LLM • Dados privados no seu browser</p>
+            <span>Tempo Médio</span>
+            <strong>30 a 45 min</strong>
           </div>
         </div>
       </div>
-    </aside>
 
-    <!-- Área Principal: Chatbot Conversacional -->
-    <main class="chat-main">
-      <header class="chat-header">
+      <div class="nav-actions">
+        <button class="btn-toggle-chat" id="btnOpenChat" aria-label="Abrir Chat com Candanga">
+          <i class="fa-solid fa-robot"></i>
+          <span>Pedir no Chat</span>
+          <span class="pulse-indicator"></span>
+        </button>
+        <button class="btn-cart-toggle" id="btnToggleCart" aria-label="Ver Carrinho">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span class="cart-pill-count" id="navCartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal: Vitrine & Painéis -->
+  <div class="app-layout">
+    <!-- Vitrine Principal (Vitrine Gourmet) -->
+    <main class="gourmet-showcase">
+      <!-- Banner Hero Elegante -->
+      <section class="gourmet-hero">
+        <div class="hero-content">
+          <span class="hero-tag"><i class="fa-solid fa-award"></i> Padrão Gastronômico de Brasília</span>
+          <h2>Comida de verdade, preparada com amor para o seu dia.</h2>
+          <p>Marmitas frescas do dia, balanceadas e personalizadas com os seus temperos favoritos. Peça clicando nos pratos ou use nossa assistente virtual no chat.</p>
+          <div class="hero-badges">
+            <span class="h-badge"><i class="fa-solid fa-seedling"></i> Ingredientes Selecionados</span>
+            <span class="h-badge"><i class="fa-solid fa-fire-burner"></i> Carnes no Ponto Certo</span>
+            <span class="h-badge"><i class="fa-solid fa-shield-halved"></i> 100% Client-Side Seguro</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Barra de Filtros & Dias da Semana -->
+      <section class="catalog-controls">
+        <div class="day-picker-bar">
+          <span class="control-label"><i class="fa-regular fa-calendar-check"></i> Cardápio do dia:</span>
+          <div class="day-chips" id="dayChips">
+            <button class="chip active" data-day="hoje">📅 Hoje</button>
+            <button class="chip" data-day="segunda">Segunda</button>
+            <button class="chip" data-day="terca">Terça</button>
+            <button class="chip" data-day="quarta">Quarta</button>
+            <button class="chip" data-day="quinta">Quinta</button>
+            <button class="chip" data-day="sexta">Sexta</button>
+            <button class="chip" data-day="sabado">Sábado</button>
+            <button class="chip" data-day="domingo">Domingo</button>
+          </div>
+        </div>
+
+        <div class="category-filters" id="categoryFilters">
+          <button class="cat-pill active" data-cat="all">🍽️ Todos os Pratos</button>
+          <button class="cat-pill" data-cat="bovino">🥩 Carnes Bovinas</button>
+          <button class="cat-pill" data-cat="frango">🍗 Aves Selecionadas</button>
+          <button class="cat-pill" data-cat="suino">🍖 Suínos & Feijoada</button>
+          <button class="cat-pill" data-cat="peixe">🐟 Pescados Nobres</button>
+          <button class="cat-pill" data-cat="fit">🥗 Opções Leves / Fit</button>
+        </div>
+      </section>
+
+      <!-- Grade de Cards Gourmet -->
+      <section class="products-section">
+        <div class="section-title-row">
+          <div>
+            <h3 id="showcaseDayTitle">Pratos Disponíveis para Hoje</h3>
+            <p class="section-subtitle">Escolha sua marmita e personalize o ponto e os temperos no clique ou chat</p>
+          </div>
+          <span class="items-found-tag" id="itemsCountBadge">3 opções frescas</span>
+        </div>
+
+        <div class="gourmet-grid" id="gourmetGrid">
+          <!-- Renderizado dinamicamente via JS -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Painel Lateral / Modal do Chatbot (Candanga) -->
+    <aside class="chat-sidebar" id="chatSidebar">
+      <div class="chat-header">
         <div class="chat-header-info">
           <div class="bot-avatar">
             <i class="fa-solid fa-robot"></i>
             <span class="online-indicator"></span>
           </div>
           <div>
-            <div class="bot-title-row">
-              <h1>Candanga - Assistente Virtual</h1>
-              <span class="bot-pill-bsb"><i class="fa-solid fa-location-dot"></i> Brasília</span>
+            <div class="bot-name-row">
+              <h4>Candanga</h4>
+              <span class="tag-ai-free">NLP Local • Sem LLM</span>
             </div>
-            <p class="subtitle">Especialista em pedidos rápidos, pontos de carne e temperos caseiros</p>
+            <p class="bot-subtitle">Atendente Virtual de Brasília</p>
           </div>
         </div>
         <div class="chat-header-actions">
-          <button class="btn-icon" id="btnToggleSidebar" title="Alternar Cardápio" aria-label="Abrir cardápio">
-            <i class="fa-solid fa-utensils"></i>
-            <span class="btn-icon-tip">Cardápio</span>
-          </button>
           <button class="btn-icon" id="btnClearChat" title="Reiniciar Pedido" aria-label="Reiniciar conversa">
             <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
+          <button class="btn-icon btn-close-chat" id="btnCloseChat" title="Fechar Chat" aria-label="Fechar painel do chat">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
-      </header>
+      </div>
 
       <!-- Mensagens do Chat -->
       <div class="chat-messages" id="chatMessages">
         <!-- Renderizado dinamicamente -->
       </div>
 
-      <!-- Atalhos Rápidos (Quick Actions) -->
+      <!-- Quick Actions -->
       <div class="quick-actions-bar" id="quickActionsBar">
-        <button class="quick-pill" data-action="ver_cardapio"><i class="fa-solid fa-book-open"></i> Ver Cardápio</button>
-        <button class="quick-pill" data-action="fechar_pedido"><i class="fa-solid fa-bag-shopping"></i> Resumo / Fechar</button>
-        <button class="quick-pill" data-action="ajuda"><i class="fa-regular fa-circle-question"></i> Como Funciona</button>
-        <button class="quick-pill" data-action="limpar"><i class="fa-solid fa-arrows-rotate"></i> Novo Pedido</button>
+        <button class="quick-pill" data-action="ver_cardapio"><i class="fa-solid fa-book-open"></i> Cardápio</button>
+        <button class="quick-pill" data-action="fechar_pedido"><i class="fa-solid fa-bag-shopping"></i> Fechar Pedido</button>
+        <button class="quick-pill" data-action="ajuda"><i class="fa-regular fa-circle-question"></i> Como Pedir</button>
+        <button class="quick-pill" data-action="limpar"><i class="fa-solid fa-arrows-rotate"></i> Limpar</button>
       </div>
 
-      <!-- Barra de Input do Chat -->
+      <!-- Formulário de Digitação -->
       <footer class="chat-input-area">
         <form id="chatForm" class="chat-form">
           <div class="input-wrapper">
-            <i class="fa-regular fa-comment-dots input-lead-icon"></i>
             <input 
               type="text" 
               id="userInput" 
@@ -136,39 +170,45 @@
             <span class="char-counter" id="charCounter">0/300</span>
           </div>
           <button type="submit" id="sendBtn" class="btn-send">
-            <span>Enviar</span>
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
         <div class="security-footer-note">
           <i class="fa-solid fa-shield-halved"></i> 
-          <span><strong>Marmitas Brasília</strong> • Processamento 100% Client-Side (Sem LLM / Sem APIs externas) • Limite de 300 caracteres</span>
+          <span>100% Client-Side • Sem LLM • Max 300 caracteres</span>
         </div>
       </footer>
-    </main>
+    </aside>
 
-    <!-- Resumo do Pedido & Carrinho -->
-    <section class="cart-drawer" id="cartDrawer">
+    <!-- Resumo do Pedido & Carrinho Flutuante / Gaveta -->
+    <aside class="cart-drawer" id="cartDrawer">
       <div class="cart-header">
         <div class="cart-title">
           <i class="fa-solid fa-basket-shopping"></i>
           <div>
-            <h3>Seu Pedido</h3>
+            <h3>Sua Comanda</h3>
             <span class="cart-sub">Marmitas Brasília</span>
           </div>
         </div>
-        <span class="cart-count-badge" id="cartCount">0</span>
+        <div class="cart-header-actions">
+          <span class="cart-count-badge" id="cartCount">0</span>
+          <button class="btn-close-cart" id="btnCloseCart" aria-label="Fechar Carrinho">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
+
       <div class="cart-body" id="cartBody">
         <div class="cart-empty" id="cartEmpty">
           <div class="empty-icon-wrap">
             <i class="fa-solid fa-utensils"></i>
           </div>
-          <p>Nenhuma marmita adicionada.</p>
-          <small>Peça digitando no chat ou clicando nos pratos do cardápio!</small>
+          <p>Nenhuma marmita selecionada.</p>
+          <small>Clique em <strong>+ Adicionar</strong> em qualquer prato da vitrine ou monte seu pedido no chat com a Candanga!</small>
         </div>
         <div class="cart-items-list" id="cartItemsList"></div>
       </div>
+
       <div class="cart-footer" id="cartFooter">
         <div class="cart-summary-line">
           <span>Subtotal das marmitas:</span>
@@ -186,7 +226,96 @@
           <i class="fa-brands fa-whatsapp"></i> Finalizar Pedido no WhatsApp
         </button>
       </div>
-    </section>
+    </aside>
+  </div>
+
+  <!-- Modal de Customização do Prato -->
+  <div class="modal-backdrop" id="customModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-dish-info">
+          <span class="modal-emoji" id="modalEmoji">🍱</span>
+          <div>
+            <h3 id="modalDishName">Nome do Prato</h3>
+            <span class="modal-dish-price" id="modalDishPrice">R$ 25,00</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" id="btnCloseModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Ponto da carne (visível apenas para bovino) -->
+        <div class="modal-field-group" id="meatPointGroup">
+          <label class="modal-label"><i class="fa-solid fa-fire"></i> Ponto da Carne:</label>
+          <div class="point-selector">
+            <label class="point-option">
+              <input type="radio" name="meatPoint" value="Ao ponto" checked>
+              <span>Ao Ponto (Recomendado)</span>
+            </label>
+            <label class="point-option">
+              <input type="radio" name="meatPoint" value="Bem passado">
+              <span>Bem Passado</span>
+            </label>
+            <label class="point-option">
+              <input type="radio" name="meatPoint" value="Mal passado">
+              <span>Mal Passado</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Temperos e Restrições -->
+        <div class="modal-field-group">
+          <label class="modal-label"><i class="fa-solid fa-sliders"></i> Ajustes de Temperos & Ingredientes:</label>
+          <div class="custom-checkboxes">
+            <label class="check-option">
+              <input type="checkbox" value="Sem cebola" id="chkNoOnion">
+              <span>Sem cebola</span>
+            </label>
+            <label class="check-option">
+              <input type="checkbox" value="Pouco sal" id="chkLowSalt">
+              <span>Pouco sal</span>
+            </label>
+            <label class="check-option">
+              <input type="checkbox" value="Sem alho" id="chkNoGarlic">
+              <span>Sem alho</span>
+            </label>
+            <label class="check-option">
+              <input type="checkbox" value="Sem feijão" id="chkNoBeans">
+              <span>Sem feijão</span>
+            </label>
+            <label class="check-option">
+              <input type="checkbox" value="Sem salada" id="chkNoSalad">
+              <span>Sem salada</span>
+            </label>
+            <label class="check-option">
+              <input type="checkbox" value="Molho à parte" id="chkSauceAside">
+              <span>Molho à parte</span>
+            </label>
+            <label class="check-option">
+              <input type="checkbox" value="Pimenta da casa" id="chkPepper">
+              <span>Com pimenta</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Quantidade -->
+        <div class="modal-field-group quantity-row">
+          <label class="modal-label">Quantidade de marmitas:</label>
+          <div class="quantity-stepper">
+            <button type="button" id="btnQtyMinus"><i class="fa-solid fa-minus"></i></button>
+            <span id="modalQtyDisplay">1</span>
+            <button type="button" id="btnQtyPlus"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-add-modal" id="btnConfirmAdd">
+          <span>Adicionar à Comanda</span>
+          <strong id="modalTotalPrice">R$ 25,00</strong>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

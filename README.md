@@ -1,85 +1,71 @@
-# 🍱 Marmitas Brasília - Chatbot 100% Client-Side & Sem LLM
+# 🍱 Marmitas Brasília - Vitrine Gourmet & Chatbot 100% Client-Side (Sem LLM)
 
 > 🌐 **Acesse o site online:** [https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/](https://joaoeduardopinho.github.io/VENDA_DE_MARMITAS/)
 
-Aplicação web gastronômica de alta performance para pedidos de marmitas em Brasília (DF). O atendimento conversacional é **100% Client-Side**, processado inteiramente dentro do navegador do usuário por algoritmos determinísticos de **Processamento de Linguagem Natural (NLP)** e Máquina de Estados Finita — **sem qualquer uso de LLM, sem servidores backend e sem consumo de APIs pagas**.
+Aplicação web gastronômica de alto padrão para delivery de marmitas em Brasília (DF). O projeto une o **Estilo Vitrine Gourmet (inspirado em Liv Up & Factor)** a um **Chatbot conversacional 100% Client-Side**, processado inteiramente no navegador via **Processamento de Linguagem Natural (NLP)** e Máquina de Estados — **sem qualquer dependência de LLM, sem servidor backend e sem consumo de APIs pagas**.
 
 ---
 
-## 🎨 Design Profissional & UI Refinada
+## 🎨 O Que Há de Novo: Design "Vitrine Gourmet"
 
-- **Identidade Visual Brasília**: Paleta gastronômica com tons quentes de terra, dourado e verde fresco (`#d9480f`, `#2b8a3e`, `#f59f00`).
-- **Glassmorphism & Microinterações**: Transições suaves, sombras em camadas e tipografia com *Plus Jakarta Sans* e *Cabinet Grotesk*.
-- **Arquitetura Visual em 3 Colunas (Desktop)**:
-  1. **Sidebar Esquerda**: Cardápio do dia interativo (clique para adicionar), seletor de dias da semana e badges de entrega no DF.
-  2. **Área Central**: Chatbot conversacional com balões estilizados, indicador de digitação, botões de ação rápida e contador de 300 caracteres em tempo real.
-  3. **Sidebar Direita**: Comanda dinâmica com subtotal, taxa de entrega fixa de Brasília e botão direto para envio no WhatsApp.
-- **Responsividade Total**: Layout adaptável para smartphones, tablets e desktops.
+1. **Vitrine Gastronômica Interativa**:
+   - Cards de pratos elegantes com fotos/ilustrações artísticas, contagem de calorias (`kcal`), tags de proteína (`Bovino`, `Frango`, `Linha Fit`, `Pescados`, `Feijoada`) e preço unitário destacado.
+   - **Filtros por Linha e Preferência**: Botões de acesso rápido para `Fit / Leve`, `Bovinos`, `Aves`, `Pescados` e `Tradicional`.
+   - **Cardápio Rotativo por Dia da Semana**: Seletor horizontal com abas de Segunda a Domingo e botão de "Hoje".
+2. **Modal Gourmet de Customização**:
+   - Ao clicar em **+ Adicionar**, abre-se uma gaveta/modal interativo para escolher o **Ponto da Carne** (*ao ponto, bem passado, mal passado*) e marcar preferências de tempero (*sem cebola, pouco sal, sem alho, sem salada, molho à parte*), além de seletor de quantidade com cálculo em tempo real.
+3. **Chatbot Integrado com Candanga (NLP no Browser)**:
+   - A assistente virtual fica posicionada como um copiloto gastronômico lateral: o usuário pode pedir por cliques na vitrine ou digitando frases naturais.
+4. **Comanda / Carrinho Flutuante (Drawer)**:
+   - Gaveta lateral deslizante com resumo detalhado, cálculo automático da taxa de entrega fixa de Brasília (R$ 6,00) e exportação direta formatada para o WhatsApp do restaurante.
+5. **Paleta Gourmet Orgânica**:
+   - Tons de **Verde Esmeralda Nobre** (`#064e3b`, `#047857`), **Terracota Artesanal** (`#c2410c`) e **Ouro Brasília** (`#d97706`).
 
 ---
 
 ## ⚡ Por que 100% Client-Side e Sem LLM?
 
-1. **Privacidade Absoluta**: Nenhuma mensagem, endereço ou dado do cliente trafega para servidores de terceiros ou modelos de linguagem externos.
-2. **Custo Zero & Zero Latência**: Funciona instantaneamente sem necessidade de tokens de API (OpenAI, Gemini, Claude) nem backend Node/Python.
-3. **Respostas Imediatas e Previsíveis**: Não há risco de "alucinações", invenção de pratos ou quebra de preços tabelados.
-4. **Disponibilidade 100%**: A aplicação continua funcionando normalmente mesmo offline após ser carregada no navegador.
+- **Privacidade Total**: Nenhum dado do cliente (endereço, telefone, mensagens) é enviado a servidores de terceiros.
+- **Custo Zero & Zero Latência**: Funciona instantaneamente sem necessidade de chaves de API pagas (OpenAI, Gemini, Claude).
+- **Sem Alucinações**: Respostas exatas e determinísticas garantidas pela máquina de estados.
+- **Disponibilidade Offline**: Funciona mesmo com instabilidade de rede após o primeiro carregamento.
 
 ---
 
-## 🧠 Pipeline de Processamento de Linguagem Natural (NLP no Browser)
+## 🧠 Pipeline de Processamento de Linguagem Natural (NLP)
 
-O motor `NLPProcessor` em [app.js](app.js) executa um fluxo completo de NLP escrito em JavaScript puro:
-
-1. **Normalização & Remoção de Acentos (NFD)**:
-   - Converte o texto para minúsculas e remove acentos, permitindo que *"cardápio"*, *"cardapio"*, *"marmitão"* e *"marmitao"* sejam compreendidos identicamente.
-2. **Tokenização & Lematização/Stemming em Português**:
-   - Quebra as sentenças em tokens e reduz palavras flexionadas às suas raízes (ex: plurais como *"marmitas"* $\rightarrow$ *"marmita"*, *"opções"* $\rightarrow$ *"opcao"*).
-3. **Similaridade por Distância de Levenshtein**:
-   - Algoritmo que mede a distância entre termos para tolerar erros de digitação comuns no celular (ex: *"bifee"*, *"frangoo"*, *"feijoda"*).
-4. **Classificador de Intenções (Intent Recognition)**:
-   - Mapeia intenções do usuário (`VIEW_MENU`, `CHECKOUT`, `RESTART`, `HELP`, `AFFIRMATIVE`, `NEGATIVE`).
-5. **Reconhecimento de Entidades Nomeadas (NER - Named Entity Recognition)**:
-   - **Quantidades**: Detecta números em algarismos (`1`, `2`) e por extenso (`duas`, `três`).
-   - **Ponto da Carne**: Extrai com precisão *"ao ponto"*, *"bem passado"*, *"mal passado"*.
-   - **Modificadores & Restrições**: Filtra termos como *"sem cebola"*, *"pouco sal"*, *"sem salada"*, *"molho à parte"*, *"arroz integral"*.
-   - **Forma de Pagamento**: Reconhece termos como *"PIX"*, *"cartão"* e *"dinheiro"*.
+Desenvolvido em JavaScript Vanilla puro (`NLPProcessor` em [app.js](app.js)):
+- **Normalização & Remoção de Acentos (NFD)**: Reconhece termos independentemente da ortografia com acentuação.
+- **Tokenização e Stemming/Lematização**: Reduz termos flexionados às raízes em português.
+- **Similaridade por Distância de Levenshtein**: Tolera pequenos erros ortográficos do usuário no celular.
+- **Classificação de Intenções (Intent Recognition)**: Identifica saudações, cardápio, checkout, ajuda ou cancelamento.
+- **Extração de Entidades Nomeadas (NER)**: Identifica automaticamente quantidades, ponto da carne, temperos e pagamento digitados no chat.
 
 ---
 
-## 🛡️ Camada de Guardrails & Segurança Defensiva
+## 🛡️ Guardrails & Segurança
 
-1. **Limite Rígido de 300 Caracteres**:
-   - Trava física via atributo HTML `maxlength="300"`.
-   - Contador visual em tempo real no campo de entrada (`0/300`) com alertas de limite.
-   - Validação preventiva na máquina de estados contra ataques de flood e estouro de memória.
-2. **Anti-Injection & Sanitização XSS**:
-   - Bloqueio de tags `<script>`, `onerror`, `onload`, `eval()`, chamadas a `document.cookie` e escape de HTML em todas as mensagens renderizadas.
-3. **Anti-Jailbreak & Modo Imutável**:
-   - Rejeição de instruções de evasão (`ignore instructions`, `DAN mode`, `sudo`, `system prompt`).
-4. **Isolamento de Domínio**:
-   - O assistente recusa ativamente perguntas que fujam do propósito de marmitas (ex: redações, código, assuntos gerais).
+- **Limite Rígido de 300 Caracteres**: Trava física no campo (`maxlength="300"`), contador visual e validação na engine JS.
+- **Anti-XSS & Anti-Jailbreak**: Sanitização rigorosa de entidades HTML e bloqueio de tentativas de injeção de código ou evasão de comandos.
+- **Escopo Fechado**: Foco restrito a pedidos de marmitas.
 
 ---
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura de Arquivos
 
 ```text
-├── index.html        # Estrutura HTML5 semântica e acessível
-├── styles.css        # Design System moderno, responsivo e paleta gastronômica
-├── app.js            # Engine Client-side: NLP, Guardrails e Máquina de Estados
-└── README.md         # Documentação técnica do projeto
+├── index.html        # Estrutura da Vitrine Gourmet, Modal e Chatbot
+├── styles.css        # Design System moderno: Paleta Esmeralda/Terracota e Glassmorphism
+├── app.js            # Engine Client-side: NLP, Vitrine Dinâmica, Modal e Comanda
+└── README.md         # Documentação completa
 ```
 
 ---
 
-## 🚀 Como Executar
+## 💻 Como Executar
 
-Por ser uma aplicação **100% Client-Side**, não requer Node.js, banco de dados ou instalação:
-
-1. Clone ou baixe o repositório:
-   ```bash
-   git clone https://github.com/joaoeduardopinho/VENDA_DE_MARMITAS.git
-   ```
-2. Dê um duplo clique no arquivo `index.html` para abrir diretamente no seu navegador (Chrome, Edge, Firefox, Safari).
-3. Converse com a **Candanga** e faça seus pedidos de marmitas em Brasília!
+Por ser **100% Client-Side**, basta clonar e abrir no navegador:
+```bash
+git clone https://github.com/joaoeduardopinho/VENDA_DE_MARMITAS.git
+```
+Dê um duplo clique no arquivo `index.html` e aproveite a experiência gourmet de Brasília!
