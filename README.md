@@ -9,17 +9,33 @@ Aplicação web gastronômica de alto padrão para delivery de marmitas em Bras�
 ## 🎨 O Que Há de Novo: Design "Vitrine Gourmet"
 
 1. **Vitrine Gastronômica Interativa**:
-   - Cards de pratos elegantes com fotos/ilustrações artísticas, contagem de calorias (`kcal`), tags de proteína (`Bovino`, `Frango`, `Linha Fit`, `Pescados`, `Feijoada`) e preço unitário destacado.
+   - Cards de pratos elegantes com ilustrações artísticas, contagem de calorias (`kcal`), tags de proteína (`Bovino`, `Frango`, `Linha Fit`, `Pescados`, `Feijoada`) e preço unitário destacado.
    - **Filtros por Linha e Preferência**: Botões de acesso rápido para `Fit / Leve`, `Bovinos`, `Aves`, `Pescados` e `Tradicional`.
    - **Cardápio Rotativo por Dia da Semana**: Seletor horizontal com abas de Segunda a Domingo e botão de "Hoje".
 2. **Modal Gourmet de Customização**:
-   - Ao clicar em **+ Adicionar**, abre-se uma gaveta/modal interativo para escolher o **Ponto da Carne** (*ao ponto, bem passado, mal passado*) e marcar preferências de tempero (*sem cebola, pouco sal, sem alho, sem salada, molho à parte*), além de seletor de quantidade com cálculo em tempo real.
+   - Ao clicar em **+ Adicionar**, abre-se uma gaveta/modal interativo para escolher o **Ponto da Carne** (*ao ponto, bem passado, mal passado*) e marcar preferências de tempero e porções em mais de 20 opções com cálculo em tempo real.
 3. **Chatbot Integrado com Candanga (NLP no Browser)**:
    - A assistente virtual fica posicionada como um copiloto gastronômico lateral: o usuário pode pedir por cliques na vitrine ou digitando frases naturais.
 4. **Comanda / Carrinho Flutuante (Drawer)**:
    - Gaveta lateral deslizante com resumo detalhado, cálculo automático da taxa de entrega fixa de Brasília (R$ 6,00) e exportação direta formatada para o WhatsApp do restaurante.
 5. **Paleta Gourmet Orgânica**:
    - Tons de **Verde Esmeralda Nobre** (`#064e3b`, `#047857`), **Terracota Artesanal** (`#c2410c`) e **Ouro Brasília** (`#d97706`).
+
+---
+
+## 🥗 Amplo Catálogo de Personalizações e Acompanhamentos
+
+O motor conversacional e o modal de customização oferecem dezenas de opções interpretadas via NLP:
+
+- **Arroz & Grãos**: *Sem arroz*, *Arroz integral*, *Arroz branco*, *Pouco arroz*, *Arroz caprichado*.
+- **Feijão & Caldos**: *Sem feijão*, *Só o caldo do feijão*, *Feijão sem caldo*, *Feijão à parte*, *Feijão preto*, *Feijão carioca*.
+- **Saladas & Legumes**: *Sem salada*, *Salada à parte*, *Sem tomate*, *Sem alface*, *Sem pepino*, *Sem legumes*, *Salada extra*.
+- **Cebola, Alho & Cheiro-Verde**: *Sem cebola*, *Pouca cebola*, *Cebola extra / bem acebolado*, *Sem alho*, *Alho extra*, *Sem cheiro-verde/coentro*.
+- **Sal & Pimenta**: *Pouco sal*, *Sem sal*, *Sem pimenta*, *Com pimenta da casa*.
+- **Batatas, Farofas & Frituras**: *Sem farofa*, *Farofa extra*, *Sem batata frita*, *Com purê no lugar das fritas*, *Sem purê*, *Sem batata palha*, *Batata palha à parte*.
+- **Molhos & Extras**: *Sem molho*, *Molho à parte*, *Molho extra*, *Sem vinagrete*, *Vinagrete à parte*, *Sem queijo*, *Sem ovo*, *Ovo com gema mole*, *Ovo com gema dura*, *Sem couve*, *Sem torresmo*, *Sem champignon*.
+- **Capturador Genérico Inteligente**: Identifica comandos livres como *"tira o ingrediente X"* ou *"sem X"* e atualiza a comanda automaticamente.
+- **Alteração de Pedido Existente**: Se uma marmita já estiver na comanda e o cliente digitar apenas *"sem arroz"* ou *"pouco sal"*, a assistente atualiza a última marmita sem reiniciar o pedido.
 
 ---
 
