@@ -973,14 +973,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Boas-vindas inicial no Chat
   function initGreeting() {
-    const greeting = `👋 Olá! Bem-vindo(a) à **Marmitas Brasília**!
-Eu sou a **Candanga**, sua atendente virtual com inteligência **100% Client-Side** (sem LLM).
+    const greeting = `👋 Olá! Seja muito bem-vindo(a) à **Marmitas Brasília**!
+Eu sou a **Candanga**, sua atendente para montagem e entrega das suas marmitas aqui no DF.
 
-🍱 Você pode:
-1. Clicar em **+ Adicionar** em qualquer prato da vitrine ao lado.
-2. Ou me pedir direto no chat: *"Quero 2 bife bovino bem passado sem cebola"*.
+🍛 **Como posso montar seu pedido hoje?**
+• Escolha qualquer marmita do cardápio pelo nome
+• Ajuste os temperos à vontade (ex: *sem cebola*, *pouco sal*, *sem salada*, *molho à parte*)
+• Defina o ponto da sua carne (*ao ponto*, *bem passada*, *mal passada*)
+• Informe a quantidade desejada (*"quero 2 marmitas..."*)
 
-O que você deseja saborear hoje?`;
+Diga o que você quer saborear ou clique em **"📋 Ver Cardápio"** para ver as opções frescas do dia!`;
 
     appendMessage('bot', greeting);
   }
